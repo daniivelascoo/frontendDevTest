@@ -59,9 +59,9 @@ Esta aplicación implementa una SPA con dos vistas principales:
 - Listado de productos obtenidos desde la API  
 - Filtrado en tiempo real por marca y modelo  
 - Navegación a detalle de producto  
-- Grid responsive (máx. 4 columnas)  
+- Grid responsive 
 
-### 📦 Product Details Page (PDP)
+### 📦 Product Page (PP)
 
 - Información detallada del producto  
 - Selección de:
@@ -69,8 +69,6 @@ Esta aplicación implementa una SPA con dos vistas principales:
   - Almacenamiento  
 - Añadir producto al carrito  
 - Navegación de vuelta al listado  
-
-Según la especificación de la prueba.
 
 ---
 

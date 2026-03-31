@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 
 import ProductsLayout from "../components/layout/products-layout";
-import SearchProductsPage from "../pages/search/search-products-page";
+import ProductListPage from "../pages/search/product-list-page";
 import ProductPage from "../pages/product/product-page";
 
 export const appRouter = createBrowserRouter([
@@ -11,7 +11,7 @@ export const appRouter = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <SearchProductsPage/>,
+                element: <ProductListPage/>,
             },
             {
                 path: 'product/:productId',

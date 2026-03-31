@@ -4,13 +4,13 @@ const {
   createBrowserRouterMock,
   navigateMock,
   productsLayoutMock,
-  searchProductsPageMock,
+  ProductListPageMock,
   productPageMock,
 } = vi.hoisted(() => ({
   createBrowserRouterMock: vi.fn(() => "mock-router"),
   navigateMock: vi.fn(({ to }) => <div>{to}</div>),
   productsLayoutMock: vi.fn(() => <div>ProductsLayout</div>),
-  searchProductsPageMock: vi.fn(() => <div>SearchProductsPage</div>),
+  ProductListPageMock: vi.fn(() => <div>ProductListPage</div>),
   productPageMock: vi.fn(() => <div>ProductPage</div>),
 }));
 
@@ -23,8 +23,8 @@ vi.mock("../components/layout/products-layout", () => ({
   default: productsLayoutMock,
 }));
 
-vi.mock("../pages/search/search-products-page", () => ({
-  default: searchProductsPageMock,
+vi.mock("../pages/search/product-list-page", () => ({
+  default: ProductListPageMock,
 }));
 
 vi.mock("../pages/product/product-page", () => ({

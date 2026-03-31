@@ -6,7 +6,7 @@ import SearchBar from "../../components/search/search-bar";
 import { useProducts } from "../../context/use-products";
 import Spinner from "../../components/ui/spinner/spinner";
 
-const SearchProductsPage = () => {
+const ProductListPage = () => {
     const [search, setSearch] = useState("");
     const { products = [], isLoading, fetchProducts, currentPage, setCurrentPage } = useProducts();
 
@@ -124,4 +124,4 @@ const SearchProductsPage = () => {
     );
 };
 
-export default SearchProductsPage;
+export default ProductListPage;

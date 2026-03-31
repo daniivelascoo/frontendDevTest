@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SearchProductsPage from "./search-products-page";
+import ProductListPage from "./product-list-page";
 
 const {
   useProductsPerPageMock,
@@ -58,7 +58,7 @@ vi.mock("../../components/ui/spinner/spinner", () => ({
   default: spinnerMock,
 }));
 
-describe("SearchProductsPage", () => {
+describe("ProductListPage", () => {
   const fetchProductsMock = vi.fn();
   const setCurrentPageMock = vi.fn();
 
@@ -83,20 +83,20 @@ describe("SearchProductsPage", () => {
   });
 
   it("should call fetchProducts on mount", () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(fetchProductsMock).toHaveBeenCalledTimes(1);
   });
 
   it("should render SearchBar with expected placeholder", () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(screen.getByTestId("search-bar")).toBeInTheDocument();
     expect(screen.getByText("Buscar producto...")).toBeInTheDocument();
   });
 
   it("should call useProductsPerPage with expected config", () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(useProductsPerPageMock).toHaveBeenCalledWith({
       cardEstimatedHeight: 380,
@@ -114,7 +114,7 @@ describe("SearchProductsPage", () => {
       setCurrentPage: setCurrentPageMock,
     });
 
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(screen.getByTestId("spinner")).toBeInTheDocument();
     expect(screen.getByText("Cargando productos...")).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should render paginated products", () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(screen.getAllByTestId("product-card")).toHaveLength(2);
     expect(screen.getByText("Apple iPhone 15")).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should render results summary", () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(screen.getByText("Resultados")).toBeInTheDocument();
     expect(screen.getByText(/Mostrando/)).toBeInTheDocument();
@@ -141,7 +141,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should render pagination when total pages is greater than 1", () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(screen.getByTestId("custom-pagination")).toBeInTheDocument();
     expect(customPaginationMock).toHaveBeenCalledWith(
@@ -163,13 +163,13 @@ describe("SearchProductsPage", () => {
       setCurrentPage: setCurrentPageMock,
     });
 
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(screen.queryByTestId("custom-pagination")).not.toBeInTheDocument();
   });
 
   it("should filter products by search query using brand", async () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     fireEvent.click(screen.getByText("search-apple"));
 
@@ -183,7 +183,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should filter products by search query using model", async () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     fireEvent.click(screen.getByText("search-samsung"));
 
@@ -196,7 +196,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should reset current page to 1 when search changes", async () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     fireEvent.click(screen.getByText("search-apple"));
 
@@ -206,7 +206,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should show empty state when no products match search", async () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     fireEvent.click(screen.getByText("search-unknown"));
 
@@ -222,7 +222,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should hide search badge when search is empty", async () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     fireEvent.click(screen.getByText("search-apple"));
 
@@ -246,7 +246,7 @@ describe("SearchProductsPage", () => {
       setCurrentPage: setCurrentPageMock,
     });
 
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     expect(customPaginationMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -258,7 +258,7 @@ describe("SearchProductsPage", () => {
   });
 
   it("should use safeCurrentPage as 1 when there are no results", async () => {
-    render(<SearchProductsPage />);
+    render(<ProductListPage />);
 
     fireEvent.click(screen.getByText("search-unknown"));
 
