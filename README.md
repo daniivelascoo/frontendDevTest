@@ -159,7 +159,19 @@ Esto sigue cumpliendo el requisito de mostrar todos los elementos que devuelve
 el API: están todos disponibles y se alcanzan sin filtrar nada; lo único que
 cambia es que aparecen progresivamente.
 
-El scroll infinito tiene dos problemas conocidos, y ambos están resueltos:
+**La carga de cada tanda tiene una pausa deliberada.** Los productos ya están en
+memoria, así que técnicamente podrían aparecer al instante; el problema es que
+entonces surgen de golpe y nada indica que haya ocurrido una carga. Durante la
+pausa se muestran tarjetas fantasma que ocupan el sitio de los productos que
+llegan, de modo que el crecimiento de la lista se anticipa en vez de dar un
+salto. El botón no se sustituye por un indicador: se mantiene montado en estado
+ocupado, porque si desapareciese, quien lo acabase de pulsar con el teclado
+perdería el foco.
+
+Una tanda en curso se cancela si el usuario cambia la búsqueda —pertenecía a
+otra lista— y el disparo repetido del observador no encadena varias tandas.
+
+El scroll infinito tiene dos problemas conocidos más, y ambos están resueltos:
 
 - **Deja fuera a quien no hace scroll.** Sin un control real que enfocar, quien
   navega con teclado no tiene forma de pedir la siguiente tanda. Por eso, junto
@@ -268,7 +280,7 @@ las combinaciones sin montar React.
 
 ## Tests
 
-167 tests con Vitest y Testing Library:
+171 tests con Vitest y Testing Library:
 
 | Archivo                                   | Qué cubre                                                                               |
 | ----------------------------------------- | --------------------------------------------------------------------------------------- |

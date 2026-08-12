@@ -1,4 +1,5 @@
 import { Button } from '../ui/Button.jsx';
+import { ProductGridSkeleton } from './ProductGridSkeleton.jsx';
 import styles from './LoadMore.module.css';
 
 /**
@@ -14,12 +15,29 @@ import styles from './LoadMore.module.css';
  * @param {number} props.visibleCount
  * @param {number} props.totalCount
  * @param {boolean} props.hasMore
+ * @param {boolean} props.isLoading Hay una tanda en camino.
  * @param {() => void} props.onLoadMore
  * @param {import('react').RefObject<HTMLElement>} props.sentinelRef
  */
-export function LoadMore({ visibleCount, totalCount, hasMore, onLoadMore, sentinelRef }) {
+export function LoadMore({
+  visibleCount,
+  totalCount,
+  hasMore,
+  isLoading,
+  onLoadMore,
+  sentinelRef,
+}) {
   return (
     <div className={styles.wrapper}>
+      {/* Tarjetas fantasma de la tanda que llega. Ocupan el sitio que van a
+          ocupar los productos, así que el crecimiento de la lista se anticipa
+          en vez de dar un salto. */}
+      {isLoading && (
+        <div className={styles.incoming}>
+          <ProductGridSkeleton count={4} label="Cargando más productos" />
+        </div>
+      )}
+
       {/* El progreso se anuncia al cargar cada tanda: quien no ve la pantalla
           no percibiría de otro modo que han aparecido más productos. */}
       <p className={styles.progress} role="status" aria-live="polite">
@@ -30,8 +48,11 @@ export function LoadMore({ visibleCount, totalCount, hasMore, onLoadMore, sentin
         <>
           <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
 
-          <Button variant="secondary" onClick={onLoadMore}>
-            Cargar más productos
+          {/* El botón se mantiene montado durante la carga en lugar de
+              sustituirse por un spinner: si desapareciese, quien lo acabase de
+              pulsar con el teclado perdería el foco. */}
+          <Button variant="secondary" onClick={onLoadMore} loading={isLoading}>
+            {isLoading ? 'Cargando…' : 'Cargar más productos'}
           </Button>
         </>
       )}

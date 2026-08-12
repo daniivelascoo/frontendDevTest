@@ -18,16 +18,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
  * @param {number} [options.pageSize] Elementos por tanda.
  * @param {string} [options.resetKey] Al cambiar, se vuelve a la primera tanda.
  * @param {number} [options.initialCount] Elementos visibles al montar.
+ * @param {number} [options.delayMs] Pausa antes de mostrar la siguiente tanda.
  * @returns {{
  *   visibleItems: T[],
  *   visibleCount: number,
  *   totalCount: number,
  *   hasMore: boolean,
+ *   isLoadingMore: boolean,
  *   loadMore: () => void,
  *   sentinelRef: import('react').RefObject<HTMLElement>
  * }}
  */
-export function useInfiniteScroll(items, { pageSize = 12, resetKey = '', initialCount } = {}) {
+export function useInfiniteScroll(
+  items,
+  { pageSize = 12, resetKey = '', initialCount, delayMs = 700 } = {}
+) {
   const totalCount = items.length;
 
   // No se acota contra `totalCount`: al montar, la lista todavía está vacía
@@ -38,8 +43,24 @@ export function useInfiniteScroll(items, { pageSize = 12, resetKey = '', initial
     Math.max(initialCount ?? pageSize, pageSize)
   );
 
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   const sentinelRef = useRef(null);
   const isFirstRender = useRef(true);
+  const timeoutRef = useRef(null);
+
+  // El estado se duplica en una ref para que `loadMore` no cambie de identidad
+  // al empezar la carga. Si cambiase, el efecto del observador volvería a
+  // suscribirse a mitad de la pausa y dispararía otra tanda.
+  const isLoadingRef = useRef(false);
+
+  const cancelPending = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    isLoadingRef.current = false;
+  }, []);
 
   // Al cambiar el criterio de búsqueda, la lista es otra: seguir en la tanda
   // quinta de una lista que ahora tiene tres elementos no tendría sentido.
@@ -51,14 +72,41 @@ export function useInfiniteScroll(items, { pageSize = 12, resetKey = '', initial
       return;
     }
 
+    // Una tanda en curso pertenece a la lista anterior; añadirla ahora
+    // ampliaría unos resultados que ya no son los que el usuario ve.
+    cancelPending();
+    setIsLoadingMore(false);
     setVisibleCount(pageSize);
-  }, [resetKey, pageSize]);
+  }, [resetKey, pageSize, cancelPending]);
+
+  // Al desmontar, el temporizador pendiente no debe intentar actualizar estado.
+  useEffect(() => cancelPending, [cancelPending]);
 
   const hasMore = visibleCount < totalCount;
 
+  /**
+   * Amplía la lista tras una pausa deliberada.
+   *
+   * Los productos ya están en memoria, así que técnicamente podrían aparecer al
+   * instante. La pausa existe para el usuario: sin ella, la tanda nueva surge
+   * de golpe y nada indica que haya ocurrido una carga. Con ella, el indicador
+   * llega a verse y el crecimiento de la lista se entiende.
+   */
   const loadMore = useCallback(() => {
-    setVisibleCount((current) => Math.min(current + pageSize, totalCount));
-  }, [pageSize, totalCount]);
+    // El observador puede dispararse varias veces seguidas mientras dura la
+    // pausa; sin esta guarda se encadenarían varias tandas de golpe.
+    if (isLoadingRef.current) return;
+
+    isLoadingRef.current = true;
+    setIsLoadingMore(true);
+
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
+      isLoadingRef.current = false;
+      setIsLoadingMore(false);
+      setVisibleCount((current) => Math.min(current + pageSize, totalCount));
+    }, delayMs);
+  }, [pageSize, totalCount, delayMs]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -87,6 +135,7 @@ export function useInfiniteScroll(items, { pageSize = 12, resetKey = '', initial
     visibleCount: visibleItems.length,
     totalCount,
     hasMore,
+    isLoadingMore,
     loadMore,
     sentinelRef,
   };
