@@ -1,0 +1,32 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+}
+
+.progress {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/**
+ * Centinela del observador.
+ *
+ * No ocupa alto propio y se coloca por encima del botón con un margen
+ * negativo, de modo que el observador dispare cuando el usuario se acerca al
+ * final del grid y no cuando ya ha chocado con él.
+ */
+.sentinel {
+  width: 100%;
+  height: 1px;
+  margin-top: calc(-1 * var(--space-6));
+  pointer-events: none;
+}
+
+.end {
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}

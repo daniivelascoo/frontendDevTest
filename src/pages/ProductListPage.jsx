@@ -1,16 +1,22 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SearchBar } from '../components/product/SearchBar.jsx';
 import { ProductGrid } from '../components/product/ProductGrid.jsx';
 import { ProductGridSkeleton } from '../components/product/ProductGridSkeleton.jsx';
+import { LoadMore } from '../components/product/LoadMore.jsx';
 import { StatusMessage } from '../components/ui/StatusMessage.jsx';
 import { useProducts } from '../hooks/useProducts.js';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll.js';
 import { useSetBreadcrumbs } from '../context/breadcrumbsContext.js';
 import { invalidateProductCache } from '../api/products.js';
+import { readListPosition, saveListPosition } from '../lib/listPosition.js';
 import styles from './ProductListPage.module.css';
 
 /** Parámetro de la URL que guarda el criterio de búsqueda. */
 const QUERY_PARAM = 'q';
+
+/** Productos por tanda del scroll infinito. */
+const PAGE_SIZE = 12;
 
 /**
  * PLP — Product List Page.
@@ -42,6 +48,23 @@ export function ProductListPage() {
 
   const { products, allProducts, status, error, isLoading, isFiltering, reload } =
     useProducts(query);
+
+  // Posición guardada al entrar en una ficha, para no devolver al usuario a la
+  // primera tanda al volver atrás. Se lee una sola vez, al montar.
+  const restoredCount = useRef(readListPosition(query));
+
+  const { visibleItems, visibleCount, totalCount, hasMore, loadMore, sentinelRef } =
+    useInfiniteScroll(products, {
+      pageSize: PAGE_SIZE,
+      resetKey: query.trim(),
+      initialCount: restoredCount.current ?? undefined,
+    });
+
+  useEffect(() => {
+    // Mientras el catálogo carga no hay nada visible, y guardar ese cero
+    // borraría la posición que acabamos de restaurar.
+    if (visibleCount > 0) saveListPosition(query, visibleCount);
+  }, [query, visibleCount]);
 
   useSetBreadcrumbs(useMemo(() => [{ label: 'Inicio', to: '/' }, { label: 'Productos' }], []));
 
@@ -96,7 +119,17 @@ export function ProductListPage() {
       )}
 
       {status === 'success' && products.length > 0 && (
-        <ProductGrid products={products} dimmed={isFiltering} />
+        <>
+          <ProductGrid products={visibleItems} dimmed={isFiltering} />
+
+          <LoadMore
+            visibleCount={visibleCount}
+            totalCount={totalCount}
+            hasMore={hasMore}
+            onLoadMore={loadMore}
+            sentinelRef={sentinelRef}
+          />
+        </>
       )}
     </div>
   );

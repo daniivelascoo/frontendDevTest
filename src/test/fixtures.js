@@ -39,6 +39,26 @@ export const productListFixture = [
   },
 ];
 
+/**
+ * Genera un catálogo del tamaño que haga falta.
+ *
+ * El fixture normal tiene cuatro productos, insuficiente para ejercitar el
+ * scroll infinito, que muestra tandas de doce.
+ *
+ * @param {number} count
+ * @param {string} [brand] Marca común, para poder filtrarlos todos a la vez.
+ * @returns {Array<object>}
+ */
+export function buildProductListFixture(count, brand = 'Marca') {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `producto-${index + 1}`,
+    brand,
+    model: `Modelo ${index + 1}`,
+    price: `${100 + index}`,
+    imgUrl: `https://itx-frontend-test.onrender.com/images/producto-${index + 1}.jpg`,
+  }));
+}
+
 /** Detalle con varias opciones de color y almacenamiento. */
 export const productDetailFixture = {
   id: 'ZmGrkLRPXOTpxsU4jjAcv',

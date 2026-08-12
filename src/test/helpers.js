@@ -52,6 +52,53 @@ export function mockFetch(routes) {
 }
 
 /**
+ * Doble de `IntersectionObserver`, que jsdom no implementa.
+ *
+ * Registra sus instancias para que un test pueda simular que el centinela del
+ * scroll infinito ha entrado en pantalla, en lugar de conformarse con probar
+ * solo el botón «Cargar más».
+ */
+export class MockIntersectionObserver {
+  /** @type {MockIntersectionObserver[]} */
+  static instances = [];
+
+  constructor(callback, options) {
+    this.callback = callback;
+    this.options = options;
+    this.elements = new Set();
+    MockIntersectionObserver.instances.push(this);
+  }
+
+  observe(element) {
+    this.elements.add(element);
+  }
+
+  unobserve(element) {
+    this.elements.delete(element);
+  }
+
+  disconnect() {
+    this.elements.clear();
+    const index = MockIntersectionObserver.instances.indexOf(this);
+    if (index !== -1) MockIntersectionObserver.instances.splice(index, 1);
+  }
+}
+
+/**
+ * Simula que los elementos vigilados han entrado en pantalla.
+ *
+ * @param {boolean} [isIntersecting]
+ */
+export function triggerIntersection(isIntersecting = true) {
+  // Se copia la lista: el callback puede provocar un render que desconecte
+  // observadores y mute el array mientras se recorre.
+  for (const observer of [...MockIntersectionObserver.instances]) {
+    const entries = [...observer.elements].map((target) => ({ target, isIntersecting }));
+    if (entries.length > 0) observer.callback(entries, observer);
+  }
+}
+
+/**
  * Storage en memoria aislado para un test concreto.
  *
  * @returns {Storage}
