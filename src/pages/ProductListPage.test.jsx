@@ -161,13 +161,23 @@ describe('ProductListPage', () => {
       expect(screen.queryByRole('heading', { name: 'Modelo 13' })).not.toBeInTheDocument();
     });
 
+    /** Pide otra tanda y espera a que termine la pausa de carga. */
+    async function cargarMas(user) {
+      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+      await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
+        // Margen holgado sobre la pausa de carga, para que el test no dependa
+        // de su duración exacta.
+        timeout: 4000,
+      });
+    }
+
     it('amplía la lista al pulsar «Cargar más»', async () => {
       mockFetch([{ match: '/api/product', body: catalogoGrande }]);
 
       const { user } = renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+      await cargarMas(user);
 
       expect(tarjetas()).toHaveLength(24);
       expect(screen.getByRole('heading', { name: 'Modelo 13' })).toBeInTheDocument();
@@ -183,7 +193,88 @@ describe('ProductListPage', () => {
 
       act(() => triggerIntersection());
 
-      await waitFor(() => expect(tarjetas()).toHaveLength(24));
+      await waitFor(() => expect(tarjetas()).toHaveLength(24), { timeout: 4000 });
+    });
+
+    describe('pausa de carga', () => {
+      it('avisa de que hay más productos en camino antes de mostrarlos', async () => {
+        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+        const { user } = renderWithProviders(<ProductListPage />);
+        await waitForCatalogue();
+
+        await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+
+        // Durante la pausa: indicador visible y lista todavía sin ampliar.
+        expect(screen.getByLabelText('Cargando más productos')).toBeInTheDocument();
+        expect(tarjetas()).toHaveLength(12);
+
+        await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
+          // Margen holgado sobre la pausa de carga, para que el test no dependa
+          // de su duración exacta.
+          timeout: 4000,
+        });
+
+        expect(tarjetas()).toHaveLength(24);
+      });
+
+      it('mantiene el botón montado durante la pausa, para no perder el foco', async () => {
+        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+        const { user } = renderWithProviders(<ProductListPage />);
+        await waitForCatalogue();
+
+        await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+
+        const boton = screen.getByRole('button', { name: /Cargando/ });
+        expect(boton).toBeDisabled();
+        expect(boton).toHaveAttribute('aria-busy', 'true');
+
+        await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
+          // Margen holgado sobre la pausa de carga, para que el test no dependa
+          // de su duración exacta.
+          timeout: 4000,
+        });
+      });
+
+      it('no encadena varias tandas si el centinela se dispara repetidamente', async () => {
+        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+        renderWithProviders(<ProductListPage />);
+        await waitForCatalogue();
+
+        // El observador puede dispararse varias veces durante la pausa.
+        act(() => {
+          triggerIntersection();
+          triggerIntersection();
+          triggerIntersection();
+        });
+
+        await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
+          // Margen holgado sobre la pausa de carga, para que el test no dependa
+          // de su duración exacta.
+          timeout: 4000,
+        });
+
+        // Una sola tanda, no tres.
+        expect(tarjetas()).toHaveLength(24);
+      });
+
+      it('descarta la tanda en curso si cambia la búsqueda', async () => {
+        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+        const { user } = renderWithProviders(<ProductListPage />);
+        await waitForCatalogue();
+
+        await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+        // Sin esperar a que termine, se cambia el criterio de búsqueda.
+        await user.type(screen.getByRole('searchbox'), 'marca');
+
+        await waitFor(() => expect(tarjetas()).toHaveLength(12), { timeout: 4000 });
+
+        // La tanda pendiente pertenecía a la lista anterior: no debe aplicarse.
+        expect(screen.queryByLabelText('Cargando más productos')).not.toBeInTheDocument();
+      });
     });
 
     it('deja de ofrecer más cuando ya se ven todos', async () => {
@@ -192,8 +283,8 @@ describe('ProductListPage', () => {
       const { user } = renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
-      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+      await cargarMas(user);
+      await cargarMas(user);
 
       expect(tarjetas()).toHaveLength(30);
       expect(
@@ -220,7 +311,7 @@ describe('ProductListPage', () => {
       const { user } = renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+      await cargarMas(user);
       expect(tarjetas()).toHaveLength(24);
 
       // Todos los productos comparten marca, así que siguen siendo 30.

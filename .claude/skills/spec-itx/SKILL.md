@@ -44,7 +44,16 @@ amplía al acercarse el usuario al final (`hooks/useInfiniteScroll.js`). PLP-1
 se sigue cumpliendo: están todos los productos del API y se alcanzan todos; solo
 aparecen progresivamente.
 
-Tres piezas que van juntas y que no conviene tocar por separado:
+Cada tanda llega tras una pausa deliberada (`delayMs`), con tarjetas fantasma
+mientras tanto. Los productos ya están en memoria: la pausa existe solo para que
+el usuario perciba que ha ocurrido una carga. Si la quitas, la lista crece de
+golpe y el indicador no llega a verse.
+
+El estado de carga se duplica en una ref (`isLoadingRef`) para que `loadMore` no
+cambie de identidad durante la pausa. Si cambiase, el efecto del observador
+volvería a suscribirse a mitad de la espera y dispararía otra tanda.
+
+Cuatro piezas que van juntas y que no conviene tocar por separado:
 
 - **Centinela + botón.** `components/product/LoadMore.jsx` monta los dos. El
   botón no es redundante: el scroll infinito solo funciona para quien hace
