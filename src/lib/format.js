@@ -36,9 +36,14 @@ export const MISSING_VALUE = '-';
  * @returns {boolean}
  */
 export function hasPrice(price) {
-  if (price === null || price === undefined || price === '') return false;
+  if (price === null || price === undefined) return false;
 
-  return Number.isFinite(Number(price));
+  // Hay que recortar antes de convertir: `Number(" ")` es 0, no NaN, así que
+  // un precio de solo espacios se colaría como producto gratuito y comprable.
+  const text = String(price).trim();
+  if (text === '') return false;
+
+  return Number.isFinite(Number(text));
 }
 
 /**
@@ -55,7 +60,7 @@ export function hasPrice(price) {
 export function formatPrice(price, { fallback = 'Precio no disponible' } = {}) {
   if (!hasPrice(price)) return fallback;
 
-  return priceFormatter.format(Number(price));
+  return priceFormatter.format(Number(String(price).trim()));
 }
 
 /**
