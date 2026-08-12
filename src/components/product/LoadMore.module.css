@@ -6,6 +6,13 @@
   padding-top: var(--space-6);
 }
 
+/* Las tarjetas fantasma continúan la rejilla, así que ocupan todo el ancho
+   aunque el resto del pie esté centrado. */
+.incoming {
+  width: 100%;
+  margin-top: calc(-1 * var(--space-2));
+}
+
 .progress {
   font-size: var(--text-sm);
   color: var(--color-ink-muted);

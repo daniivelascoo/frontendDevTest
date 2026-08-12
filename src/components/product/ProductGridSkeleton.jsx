@@ -9,10 +9,13 @@ import styles from './ProductGridSkeleton.module.css';
  *
  * @param {object} props
  * @param {number} [props.count] Tarjetas fantasma a dibujar.
+ * @param {string} [props.label] Texto anunciado durante la carga. Se
+ *   distingue el primer volcado del catálogo de las tandas posteriores para
+ *   que un lector de pantalla sepa cuál de las dos está ocurriendo.
  */
-export function ProductGridSkeleton({ count = 8 }) {
+export function ProductGridSkeleton({ count = 8, label = 'Cargando productos' }) {
   return (
-    <div role="status" aria-label="Cargando productos">
+    <div role="status" aria-label={label}>
       <ul className={gridStyles.grid} aria-hidden="true">
         {Array.from({ length: count }, (_, index) => (
           <li key={index} className={gridStyles.cell}>

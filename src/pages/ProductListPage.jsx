@@ -53,7 +53,7 @@ export function ProductListPage() {
   // primera tanda al volver atrás. Se lee una sola vez, al montar.
   const restoredCount = useRef(readListPosition(query));
 
-  const { visibleItems, visibleCount, totalCount, hasMore, loadMore, sentinelRef } =
+  const { visibleItems, visibleCount, totalCount, hasMore, isLoadingMore, loadMore, sentinelRef } =
     useInfiniteScroll(products, {
       pageSize: PAGE_SIZE,
       resetKey: query.trim(),
@@ -126,6 +126,7 @@ export function ProductListPage() {
             visibleCount={visibleCount}
             totalCount={totalCount}
             hasMore={hasMore}
+            isLoading={isLoadingMore}
             onLoadMore={loadMore}
             sentinelRef={sentinelRef}
           />
