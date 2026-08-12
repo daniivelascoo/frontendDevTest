@@ -76,8 +76,10 @@ src/
 │   ├── search.js      Filtrado por marca y modelo
 │   ├── format.js      Precios, pesos y valores de especificación
 │   ├── productSpecs.js Traducción del detalle del API a ficha técnica
-│   └── availability.js Si un producto se puede comprar, y por qué no
-├── hooks/       useProducts · useProduct · useAsyncResource · useDebouncedValue
+│   ├── availability.js Si un producto se puede comprar, y por qué no
+│   └── listPosition.js Posición del listado al volver desde una ficha
+├── hooks/       useProducts · useProduct · useAsyncResource
+│                useDebouncedValue · useInfiniteScroll
 ├── context/     CartProvider (cesta) · BreadcrumbsProvider (migas de pan)
 ├── components/  layout/ · product/ · ui/
 ├── pages/       ProductListPage · ProductDetailPage · NotFoundPage
@@ -142,6 +144,35 @@ Las cuatro situaciones están cubiertas en ambas vistas: esqueleto de carga en e
 listado, error con botón de reintentar, resultado vacío con opción de limpiar la
 búsqueda, y un 404 que se distingue de un error de servidor (reintentar un 404
 solo repetiría el mismo error, así que en ese caso no se ofrece el botón).
+
+### Scroll infinito
+
+El listado muestra los productos en tandas de 12 y amplía la lista al acercarse
+el usuario al final, mediante un `IntersectionObserver` sobre un centinela.
+
+**No es paginación de servidor.** El API entrega los 100 productos de una vez y
+no admite parámetros de paginado, así que aquí no se pide nada nuevo: solo se
+decide cuántos de los que ya están en memoria se renderizan. Eso evita montar
+100 tarjetas —y sus 100 imágenes— en la primera pintura.
+
+Esto sigue cumpliendo el requisito de mostrar todos los elementos que devuelve
+el API: están todos disponibles y se alcanzan sin filtrar nada; lo único que
+cambia es que aparecen progresivamente.
+
+El scroll infinito tiene dos problemas conocidos, y ambos están resueltos:
+
+- **Deja fuera a quien no hace scroll.** Sin un control real que enfocar, quien
+  navega con teclado no tiene forma de pedir la siguiente tanda. Por eso, junto
+  al centinela hay un botón «Cargar más productos» que hace lo mismo de forma
+  explícita, y el progreso se anuncia con `aria-live` en cada tanda.
+- **Pierde la posición al volver atrás.** Entrar en una ficha y volver
+  devolvería al usuario a los 12 primeros productos, obligándole a repetir todo
+  el scroll. La posición se guarda en `sessionStorage` asociada al criterio de
+  búsqueda —si vuelve con otra búsqueda, se ignora— y `ScrollToTop` no salta
+  arriba en las navegaciones `POP`, de modo que el navegador restaure el scroll.
+
+Al cambiar el criterio de búsqueda se vuelve a la primera tanda: seguir en la
+tercera de una lista que ahora tiene dos resultados no tendría sentido.
 
 ### Rejilla adaptativa
 
@@ -237,7 +268,7 @@ las combinaciones sin montar React.
 
 ## Tests
 
-146 tests con Vitest y Testing Library:
+167 tests con Vitest y Testing Library:
 
 | Archivo                                   | Qué cubre                                                                               |
 | ----------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -249,7 +280,7 @@ las combinaciones sin montar React.
 | `api/products.test.js`                    | Caché, deduplicación, errores de red y contrato del POST                                |
 | `context/CartProvider.test.jsx`           | Persistencia del contador y fallo del API                                               |
 | `components/product/ProductCard.test.jsx` | Tarjeta con marca, modelo, precio o imagen ausentes                                     |
-| `pages/ProductListPage.test.jsx`          | Listado, búsqueda, estados vacío y de error                                             |
+| `pages/ProductListPage.test.jsx`          | Listado, búsqueda, scroll infinito, estados vacío y de error                            |
 | `pages/ProductDetailPage.test.jsx`        | Ficha, selectores, preselección, añadido y datos ausentes                               |
 
 Se simula el `fetch` global, no los módulos de servicios: así los tests ejercitan

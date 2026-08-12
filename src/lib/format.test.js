@@ -5,8 +5,31 @@ import {
   formatSpecValue,
   formatSpecValueOrFallback,
   formatWeight,
+  hasPrice,
   MISSING_VALUE,
 } from './format.js';
+
+describe('hasPrice', () => {
+  it('acepta los precios reales, incluido el cero', () => {
+    expect(hasPrice('699')).toBe(true);
+    expect(hasPrice(699)).toBe(true);
+    // Gratis no es lo mismo que sin precio.
+    expect(hasPrice('0')).toBe(true);
+    expect(hasPrice(0)).toBe(true);
+  });
+
+  it.each([
+    ['cadena vacía', ''],
+    ['un espacio', ' '],
+    ['varios espacios', '   '],
+    ['tabulador y salto', '\t\n'],
+    ['null', null],
+    ['undefined', undefined],
+    ['texto no numérico', 'consultar'],
+  ])('rechaza %s', (_label, value) => {
+    expect(hasPrice(value)).toBe(false);
+  });
+});
 
 describe('formatPrice', () => {
   it('formatea un precio numérico en euros', () => {
@@ -28,6 +51,18 @@ describe('formatPrice', () => {
 
   it('no intenta formatear valores que no son numéricos', () => {
     expect(formatPrice('consultar')).toBe('Precio no disponible');
+  });
+
+  it('no confunde un precio de solo espacios con un producto gratuito', () => {
+    // `Number(" ")` es 0, no NaN: sin recortar antes, un precio en blanco se
+    // mostraría como «0 €» y el producto se podría comprar.
+    expect(formatPrice(' ')).toBe('Precio no disponible');
+    expect(formatPrice('   ')).toBe('Precio no disponible');
+    expect(formatPrice('\t\n')).toBe('Precio no disponible');
+  });
+
+  it('acepta un precio con espacios alrededor de un número real', () => {
+    expect(formatPrice(' 699 ')).toContain('699');
   });
 
   it('acepta un marcador alternativo para la ficha técnica', () => {

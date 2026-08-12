@@ -15,15 +15,20 @@ import styles from './ProductImage.module.css';
  * @param {'lazy' | 'eager'} [props.loading]
  */
 export function ProductImage({ src, alt, variant = 'card', loading = 'lazy' }) {
-  const [state, setState] = useState(src ? 'loading' : 'error');
-  const [renderedSrc, setRenderedSrc] = useState(src);
+  // Se recorta antes de decidir: una URL de solo espacios es `truthy`, y
+  // pintarla haría que el navegador pidiese la propia página como imagen
+  // antes de acabar mostrando el respaldo igualmente.
+  const url = typeof src === 'string' ? src.trim() : '';
+
+  const [state, setState] = useState(url ? 'loading' : 'error');
+  const [renderedSrc, setRenderedSrc] = useState(url);
 
   // Si cambia la imagen, se reinicia el estado durante el propio render en
   // lugar de en un efecto: así no se llega a pintar un fotograma con el
   // estado de la imagen anterior.
-  if (src !== renderedSrc) {
-    setRenderedSrc(src);
-    setState(src ? 'loading' : 'error');
+  if (url !== renderedSrc) {
+    setRenderedSrc(url);
+    setState(url ? 'loading' : 'error');
   }
 
   const showFallback = state === 'error';
@@ -33,7 +38,7 @@ export function ProductImage({ src, alt, variant = 'card', loading = 'lazy' }) {
       {!showFallback && (
         <img
           className={styles.image}
-          src={src}
+          src={url}
           alt={alt}
           loading={loading}
           decoding="async"

@@ -85,6 +85,15 @@ describe('getPurchaseAvailability', () => {
       expect(getPurchaseAvailability(buildProduct({ price: 'consultar' })).isAvailable).toBe(false);
     });
 
+    it('no da por comprable un producto cuyo precio son solo espacios', () => {
+      // Mismo patrón que las opciones sin nombre: `Number(" ")` es 0, así que
+      // sin recortar el producto pasaría por gratuito y comprable.
+      const result = getPurchaseAvailability(buildProduct({ price: ' ' }));
+
+      expect(result.isAvailable).toBe(false);
+      expect(result.reasons).toEqual([UNAVAILABLE_REASON.PRICE]);
+    });
+
     it.each([
       ['null', null],
       ['undefined', undefined],

@@ -62,4 +62,22 @@ describe('ProductCard', () => {
       screen.getByRole('img', { name: 'Samsung Galaxy S9 (imagen no disponible)' })
     ).toBeInTheDocument();
   });
+
+  it('trata una URL de solo espacios como imagen ausente', () => {
+    // `Boolean(" ")` es true: sin recortar, el navegador pediría la propia
+    // página como imagen antes de acabar mostrando el respaldo igualmente.
+    renderWithProviders(<ProductCard product={{ ...completeProduct, imgUrl: '   ' }} />);
+
+    expect(
+      screen.getByRole('img', { name: 'Samsung Galaxy S9 (imagen no disponible)' })
+    ).toBeInTheDocument();
+    expect(document.querySelector('img')).toBeNull();
+  });
+
+  it('no muestra «0 €» si el precio llega como espacios en blanco', () => {
+    renderWithProviders(<ProductCard product={{ ...completeProduct, price: '  ' }} />);
+
+    expect(screen.getByText('Precio no disponible')).toBeInTheDocument();
+    expect(screen.queryByText(/0\s*€/)).not.toBeInTheDocument();
+  });
 });
