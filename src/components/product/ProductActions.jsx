@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { OptionSelector } from './OptionSelector.jsx';
 import { Button } from '../ui/Button.jsx';
 import { getPurchaseOptions } from '../../lib/productSpecs.js';
+import { getPurchaseAvailability } from '../../lib/availability.js';
 import { formatPrice } from '../../lib/format.js';
 import { useCart } from '../../context/cartContext.js';
 import styles from './ProductActions.module.css';
@@ -19,7 +20,10 @@ import styles from './ProductActions.module.css';
  */
 export function ProductActions({ product }) {
   const { colors, storages } = useMemo(() => getPurchaseOptions(product), [product]);
+  const availability = useMemo(() => getPurchaseAvailability(product), [product]);
   const { addItem, status } = useCart();
+
+  const unavailableId = useId();
 
   const [colorCode, setColorCode] = useState(() => colors[0]?.code ?? null);
   const [storageCode, setStorageCode] = useState(() => storages[0]?.code ?? null);
@@ -33,10 +37,9 @@ export function ProductActions({ product }) {
     setFeedback(null);
   }, [colors, storages]);
 
-  // Sin opciones no hay códigos que enviar al API, así que la compra no es
-  // posible. Ocurre con productos incompletos del catálogo.
-  const hasOptions = colors.length > 0 && storages.length > 0;
-  const canSubmit = hasOptions && colorCode !== null && storageCode !== null;
+  // Un producto sin precio, sin almacenamiento o sin color no se puede
+  // comprar: falta o el importe o alguno de los códigos que exige el POST.
+  const canSubmit = availability.isAvailable && colorCode !== null && storageCode !== null;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -78,16 +81,28 @@ export function ProductActions({ product }) {
           onChange={setColorCode}
         />
 
-        {!hasOptions && (
-          <p className={styles.unavailable}>
-            Este producto no tiene opciones de compra disponibles.
+        {availability.message && (
+          <p id={unavailableId} className={styles.unavailable}>
+            <span className={styles.unavailableIcon} aria-hidden="true">
+              !
+            </span>
+            {availability.message}
           </p>
         )}
 
         <div className={styles.purchase}>
           <p className={styles.price}>{formatPrice(product.price)}</p>
 
-          <Button type="submit" fullWidth loading={status === 'adding'} disabled={!canSubmit}>
+          <Button
+            type="submit"
+            fullWidth
+            loading={status === 'adding'}
+            disabled={!canSubmit}
+            // Un botón deshabilitado sin más deja al usuario adivinando. Al
+            // enlazarlo con la explicación, un lector de pantalla la anuncia
+            // al llegar al botón.
+            aria-describedby={availability.message ? unavailableId : undefined}
+          >
             {status === 'adding' ? 'Añadiendo…' : 'Añadir a la cesta'}
           </Button>
         </div>

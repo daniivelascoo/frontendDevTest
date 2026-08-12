@@ -122,6 +122,28 @@ vacío nunca debe acabar mostrándose como «0 €».
 ACT-2 es un caso fácil de romper sin darse cuenta: hay tests dedicados en
 `pages/ProductDetailPage.test.jsx` con el fixture `singleOptionProductFixture`.
 
+### Productos que no se pueden comprar
+
+Añadido sobre el mínimo del enunciado. Un producto solo es comprable si cumple
+las **tres** condiciones: tiene precio, al menos una opción de almacenamiento y
+al menos una de color. Si falla alguna, el botón se deshabilita y se muestra una
+explicación que **nombra todos** los motivos, no solo el primero.
+
+La lógica está en `lib/availability.js` (`getPurchaseAvailability`), fuera del
+componente para poder probar las combinaciones sin montar React. Devuelve
+`{ isAvailable, reasons, message }`.
+
+Tres detalles que conviene no romper:
+
+- **Un precio de `0` es válido**: significa gratis, no inexistente. La regla la
+  decide `hasPrice` en `lib/format.js`, que comparten `formatPrice` y la
+  comprobación de disponibilidad — no la dupliques.
+- **Los selectores se siguen mostrando** aunque el producto no sea comprable:
+  el usuario debe poder ver qué opciones existen.
+- El aviso se enlaza al botón con `aria-describedby`, para que un lector de
+  pantalla anuncie el motivo al llegar a él. Un botón deshabilitado y mudo deja
+  al usuario adivinando.
+
 ## Contrato del API
 
 Dominio: `https://itx-frontend-test.onrender.com`
