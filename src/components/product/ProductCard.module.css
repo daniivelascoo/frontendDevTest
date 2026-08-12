@@ -1,0 +1,57 @@
+.card {
+  height: 100%;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.link:hover {
+  border-color: var(--color-line);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-inline: var(--space-1);
+}
+
+.brand {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.model {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+
+  /* Dos líneas como máximo: mantiene todas las tarjetas de la fila alineadas. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.price {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+}

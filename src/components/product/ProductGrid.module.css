@@ -1,0 +1,36 @@
+/**
+ * Rejilla adaptativa con un máximo estricto de cuatro columnas.
+ *
+ * `auto-fill` con un mínimo permite que el número de columnas caiga solo al
+ * estrecharse la ventana, y el `max-width` del contenedor de columnas impide
+ * que llegue a una quinta en pantallas muy anchas.
+ */
+.grid {
+  display: grid;
+  gap: var(--space-5) var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* Máximo de 4 columnas: a partir del ancho en el que cabrían 5, se fija en 4. */
+@media (min-width: 64rem) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Dos columnas en móvil, en lugar de una sola tarjeta enorme. */
+@media (max-width: 34rem) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4) var(--space-3);
+  }
+}
+
+.cell {
+  min-width: 0;
+}
+
+.grid[data-dimmed] {
+  opacity: 0.55;
+}

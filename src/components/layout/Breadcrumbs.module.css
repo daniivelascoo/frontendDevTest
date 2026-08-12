@@ -1,0 +1,46 @@
+.breadcrumbs {
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-ink-muted);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.link {
+  color: var(--color-ink-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.current {
+  color: var(--color-ink);
+  font-weight: var(--weight-medium);
+
+  /* Los nombres de producto largos no deben empujar al contador de la cesta. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 42ch;
+}
+
+.separator {
+  color: var(--color-line-strong);
+}

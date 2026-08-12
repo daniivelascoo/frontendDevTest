@@ -1,0 +1,79 @@
+.form {
+  width: 100%;
+  max-width: 22rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.field:focus-within {
+  border-color: var(--color-ink);
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-ink-muted);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: var(--text-base);
+}
+
+.input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+/* Oculta la "x" nativa de los input[type=search] en Chrome/Safari:
+   ya ofrecemos un botón propio, accesible y etiquetado. */
+.input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-ink-muted);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.clear:hover {
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+}
+
+.clear svg {
+  width: 14px;
+  height: 14px;
+}
