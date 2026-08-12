@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { MockIntersectionObserver } from './helpers.js';
 
 /**
  * Configuración global de los tests.
@@ -9,10 +10,16 @@ import { cleanup } from '@testing-library/react';
  * `localStorage` de un test anterior ni mocks compartidos entre archivos.
  */
 
+// jsdom no implementa `IntersectionObserver`, del que depende el scroll
+// infinito del listado. Se asigna directamente y no con `stubGlobal` para que
+// el `unstubAllGlobals` de abajo no lo retire entre tests.
+globalThis.IntersectionObserver = MockIntersectionObserver;
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
   window.sessionStorage.clear();
+  MockIntersectionObserver.instances.length = 0;
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });

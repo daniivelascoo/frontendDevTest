@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
+import { act, screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { ProductListPage } from './ProductListPage.jsx';
 import { invalidateProductCache } from '../api/products.js';
-import { productListFixture } from '../test/fixtures.js';
-import { mockFetch } from '../test/helpers.js';
+import { buildProductListFixture, productListFixture } from '../test/fixtures.js';
+import { mockFetch, triggerIntersection } from '../test/helpers.js';
+import { saveListPosition } from '../lib/listPosition.js';
 import { renderWithProviders } from '../test/utils.jsx';
 
 /** Espera a que desaparezca el esqueleto de carga. */
@@ -140,6 +141,118 @@ describe('ProductListPage', () => {
     expect(screen.getByRole('searchbox')).toHaveValue('xiaomi');
     expect(await screen.findByRole('heading', { name: 'Redmi Note 7' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Galaxy S9' })).not.toBeInTheDocument();
+  });
+
+  describe('scroll infinito', () => {
+    /** Catálogo de 30 productos: dos tandas completas y media. */
+    const catalogoGrande = buildProductListFixture(30);
+
+    /** Cuenta las tarjetas de producto que hay pintadas. */
+    const tarjetas = () => screen.getAllByRole('heading', { level: 2 });
+
+    it('muestra solo la primera tanda de doce productos', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      expect(tarjetas()).toHaveLength(12);
+      expect(screen.getByText('Mostrando 12 de 30 productos')).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Modelo 13' })).not.toBeInTheDocument();
+    });
+
+    it('amplía la lista al pulsar «Cargar más»', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      const { user } = renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+
+      expect(tarjetas()).toHaveLength(24);
+      expect(screen.getByRole('heading', { name: 'Modelo 13' })).toBeInTheDocument();
+    });
+
+    it('amplía la lista cuando el centinela entra en pantalla', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      expect(tarjetas()).toHaveLength(12);
+
+      act(() => triggerIntersection());
+
+      await waitFor(() => expect(tarjetas()).toHaveLength(24));
+    });
+
+    it('deja de ofrecer más cuando ya se ven todos', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      const { user } = renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+
+      expect(tarjetas()).toHaveLength(30);
+      expect(
+        screen.queryByRole('button', { name: 'Cargar más productos' })
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Has llegado al final del catálogo.')).toBeInTheDocument();
+    });
+
+    it('no ofrece cargar más si el catálogo cabe en una tanda', async () => {
+      mockFetch([{ match: '/api/product', body: productListFixture }]);
+
+      renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      expect(
+        screen.queryByRole('button', { name: 'Cargar más productos' })
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('Mostrando 4 de 4 productos')).toBeInTheDocument();
+    });
+
+    it('vuelve a la primera tanda al cambiar la búsqueda', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      const { user } = renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
+      expect(tarjetas()).toHaveLength(24);
+
+      // Todos los productos comparten marca, así que siguen siendo 30.
+      await user.type(screen.getByRole('searchbox'), 'marca');
+
+      await waitFor(() => expect(tarjetas()).toHaveLength(12));
+    });
+
+    it('restaura la posición al volver desde la ficha de un producto', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      // Es lo que la página deja guardado antes de navegar al detalle.
+      saveListPosition('', 24);
+
+      renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      expect(tarjetas()).toHaveLength(24);
+    });
+
+    it('ignora la posición guardada si la búsqueda es otra', async () => {
+      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+
+      // La posición pertenece a otra lista: restaurarla mostraría un número
+      // arbitrario de resultados de una búsqueda distinta.
+      saveListPosition('otra-cosa', 24);
+
+      renderWithProviders(<ProductListPage />);
+      await waitForCatalogue();
+
+      expect(tarjetas()).toHaveLength(12);
+    });
   });
 
   it('muestra un error con opción de reintentar si falla la carga', async () => {

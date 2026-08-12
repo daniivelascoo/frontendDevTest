@@ -37,6 +37,31 @@ El máximo de cuatro columnas es un techo, no un número fijo: por debajo de
 `64rem` la rejilla baja a tres, dos o las que quepan. Si tocas ese CSS, comprueba
 que en pantallas anchas nunca aparece una quinta columna.
 
+### Scroll infinito
+
+Añadido sobre el mínimo del enunciado. El listado renderiza tandas de 12 y
+amplía al acercarse el usuario al final (`hooks/useInfiniteScroll.js`). PLP-1
+se sigue cumpliendo: están todos los productos del API y se alcanzan todos; solo
+aparecen progresivamente.
+
+Tres piezas que van juntas y que no conviene tocar por separado:
+
+- **Centinela + botón.** `components/product/LoadMore.jsx` monta los dos. El
+  botón no es redundante: el scroll infinito solo funciona para quien hace
+  scroll, y sin un control real que enfocar, quien navega con teclado se queda
+  sin forma de ver el resto del catálogo. También es la vía de escape si el
+  navegador no soporta `IntersectionObserver`.
+- **Posición al volver.** `lib/listPosition.js` guarda en `sessionStorage`
+  cuántos productos había desplegados, asociados al criterio de búsqueda. Sin
+  esto, volver desde una ficha devolvería al usuario a los 12 primeros.
+- **`ScrollToTop` ignora las navegaciones `POP`**, para que el navegador
+  restaure el scroll al ir hacia atrás. Si vuelves a saltar arriba siempre, la
+  posición restaurada no sirve de nada.
+
+En los tests, jsdom no implementa `IntersectionObserver`: hay un doble en
+`test/helpers.js` y `triggerIntersection()` para simular que el centinela entra
+en pantalla.
+
 ## Vista PDP — detalle de producto
 
 | # | Requisito | Dónde vive |
