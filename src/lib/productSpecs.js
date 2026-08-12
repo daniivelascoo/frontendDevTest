@@ -160,6 +160,17 @@ export function getAdditionalSpecGroups(product) {
  * seleccionada por defecto; devolver siempre arrays permite que el componente
  * no tenga que distinguir casos.
  *
+ * Una opción solo es elegible si cumple **las dos** condiciones:
+ *
+ *   - Tiene `code`, porque es lo que exige el `POST /api/cart`.
+ *   - Tiene nombre, porque es lo que el usuario lee para decidir.
+ *
+ * Lo segundo no es teórico: en el catálogo real hay productos cuyo único
+ * almacenamiento llega como `{ code: 2000, name: " " }`. Conservarlos pintaba
+ * una pastilla con un guion —que nadie puede elegir a conciencia— y, al contar
+ * como opción, dejaba el producto como comprable. Descartarlas hace que el
+ * producto quede correctamente marcado como no disponible.
+ *
  * @param {object} product Detalle de producto del API.
  * @returns {{ colors: Array<{ code: number, name: string }>, storages: Array<{ code: number, name: string }> }}
  */
@@ -169,10 +180,8 @@ export function getPurchaseOptions(product) {
   const sanitize = (list) =>
     (Array.isArray(list) ? list : [])
       .filter((option) => option && option.code !== undefined && option.code !== null)
-      .map((option) => ({
-        code: option.code,
-        name: formatSpecValue(option.name) ?? MISSING_VALUE,
-      }));
+      .map((option) => ({ code: option.code, name: formatSpecValue(option.name) }))
+      .filter((option) => option.name !== null);
 
   return {
     colors: sanitize(options.colors),
