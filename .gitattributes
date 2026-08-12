@@ -1,0 +1,15 @@
+# Normaliza los finales de línea a LF tanto en el repositorio como en el árbol
+# de trabajo. Sin esto, en Windows git entrega CRLF al clonar y Prettier
+# —configurado con `endOfLine: "lf"`— haría fallar `npm run format:check`
+# sobre un clon recién hecho.
+* text=auto eol=lf
+
+# Archivos que nunca deben normalizarse.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
