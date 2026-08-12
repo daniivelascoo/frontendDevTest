@@ -176,4 +176,37 @@ describe('getPurchaseOptions', () => {
 
     expect(colors).toEqual([{ code: 1, name: 'Válido' }]);
   });
+
+  it('descarta las opciones sin nombre, que el usuario no podría elegir', () => {
+    // Caso real del catálogo: Acer DX650 devuelve `[{ code: 2000, name: " " }]`.
+    const { storages } = getPurchaseOptions({
+      options: { storages: [{ code: 2000, name: ' ' }] },
+    });
+
+    expect(storages).toEqual([]);
+  });
+
+  it.each([
+    ['cadena vacía', ''],
+    ['espacios', '   '],
+    ['null', null],
+    ['undefined', undefined],
+  ])('descarta una opción cuyo nombre es %s', (_label, name) => {
+    const { colors } = getPurchaseOptions({ options: { colors: [{ code: 1000, name }] } });
+
+    expect(colors).toEqual([]);
+  });
+
+  it('conserva las opciones válidas aunque alguna hermana no lo sea', () => {
+    const { storages } = getPurchaseOptions({
+      options: {
+        storages: [
+          { code: 2000, name: ' ' },
+          { code: 2001, name: '64 GB' },
+        ],
+      },
+    });
+
+    expect(storages).toEqual([{ code: 2001, name: '64 GB' }]);
+  });
 });

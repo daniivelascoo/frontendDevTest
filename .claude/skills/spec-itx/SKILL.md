@@ -138,6 +138,11 @@ Tres detalles que conviene no romper:
 - **Un precio de `0` es válido**: significa gratis, no inexistente. La regla la
   decide `hasPrice` en `lib/format.js`, que comparten `formatPrice` y la
   comprobación de disponibilidad — no la dupliques.
+- **Una opción solo cuenta si tiene código y nombre.** `getPurchaseOptions`
+  descarta las que no cumplan ambas cosas. En el catálogo real, Acer DX650 y
+  Acer M900 devuelven `storages: [{ code: 2000, name: " " }]`; aceptarla por
+  tener código pintaba una pastilla con un guion y daba el producto por
+  comprable. Hay tests de regresión con `blankOptionNameProductFixture`.
 - **Los selectores se siguen mostrando** aunque el producto no sea comprable:
   el usuario debe poder ver qué opciones existen.
 - El aviso se enlaza al botón con `aria-describedby`, para que un lector de
