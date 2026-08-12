@@ -3,6 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { ProductDetailPage } from './ProductDetailPage.jsx';
 import { invalidateProductCache } from '../api/products.js';
 import {
+  blankOptionNameProductFixture,
   incompleteProductFixture,
   productDetailFixture,
   singleOptionProductFixture,
@@ -339,6 +340,24 @@ describe('ProductDetailPage', () => {
       await user.click(addButton());
 
       expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/cart'))).toBe(false);
+    });
+
+    it('no ofrece una pastilla «-» ni deja comprar si la opción no tiene nombre', async () => {
+      // Regresión: Acer DX650 devuelve `storages: [{ code: 2000, name: " " }]`.
+      // Al tener código contaba como opción válida, así que se pintaba una
+      // pastilla con un guion y el producto se podía añadir a la cesta.
+      mockFetch([{ match: '/api/product/', body: blankOptionNameProductFixture }]);
+
+      renderDetail();
+
+      expect(await screen.findByText(/no tiene opciones de almacenamiento\./)).toBeInTheDocument();
+      expect(addButton()).toBeDisabled();
+
+      // No debe quedar ningún radio con el marcador como etiqueta.
+      expect(screen.queryByRole('radio', { name: '-' })).not.toBeInTheDocument();
+      // El grupo de almacenamiento desaparece; el de color, que sí es válido, no.
+      expect(screen.queryByRole('group', { name: /Almacenamiento/ })).not.toBeInTheDocument();
+      expect(screen.getByRole('group', { name: /Color/ })).toBeInTheDocument();
     });
 
     it('no muestra ningún aviso cuando el producto sí se puede comprar', async () => {

@@ -222,12 +222,22 @@ Los selectores se siguen mostrando aunque el producto no sea comprable, para que
 el usuario vea qué opciones existen. Y un precio de `0` cuenta como precio
 válido: significa gratis, no inexistente.
 
+Una opción solo se considera elegible si tiene **código y nombre**. El código lo
+exige el `POST`, y el nombre es lo que el usuario lee para decidir. No es un
+matiz teórico: en el catálogo real, Acer DX650 y Acer M900 devuelven
+`storages: [{ code: 2000, name: " " }]`. Aceptar esa opción por tener código
+pintaba una pastilla con un guion —que nadie puede elegir a conciencia— y dejaba
+el producto como comprable.
+
+Ejecutada la lógica sobre los 100 productos del catálogo real, quedan 8
+bloqueados: 6 sin precio y 2 sin un almacenamiento utilizable.
+
 La lógica vive en `lib/availability.js`, fuera del componente, para poder probar
 las combinaciones sin montar React.
 
 ## Tests
 
-138 tests con Vitest y Testing Library:
+146 tests con Vitest y Testing Library:
 
 | Archivo                                   | Qué cubre                                                                               |
 | ----------------------------------------- | --------------------------------------------------------------------------------------- |

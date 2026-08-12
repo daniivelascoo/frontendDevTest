@@ -127,6 +127,26 @@ export const incompleteProductFixture = {
   },
 };
 
+/**
+ * Producto cuyo único almacenamiento llega con el nombre en blanco.
+ *
+ * No es un caso inventado: en el catálogo real, Acer DX650 y Acer M900
+ * devuelven exactamente `storages: [{ code: 2000, name: " " }]`. Tener código
+ * no basta para que una opción sea elegible; sin nombre, el usuario no puede
+ * saber qué está comprando.
+ */
+export const blankOptionNameProductFixture = {
+  ...productDetailFixture,
+  id: 'mQWbDUsIUEPZy2My8Qxvl',
+  brand: 'Acer',
+  model: 'DX650',
+  price: '120',
+  options: {
+    colors: [{ code: 1000, name: 'Black' }],
+    storages: [{ code: 2000, name: ' ' }],
+  },
+};
+
 /** Detalle con una única opción por grupo, para el caso de preselección. */
 export const singleOptionProductFixture = {
   ...productDetailFixture,

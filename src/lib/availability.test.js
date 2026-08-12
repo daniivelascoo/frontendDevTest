@@ -107,6 +107,19 @@ describe('getPurchaseAvailability', () => {
       expect(result.isAvailable).toBe(false);
       expect(result.reasons).toEqual([UNAVAILABLE_REASON.COLOR]);
     });
+
+    it('no da por comprable un producto cuya única opción no tiene nombre', () => {
+      // Caso real del catálogo: Acer DX650 y Acer M900 devuelven un
+      // almacenamiento `{ code: 2000, name: " " }`. Tener código no basta:
+      // sin nombre el usuario no sabría qué está eligiendo.
+      const result = getPurchaseAvailability(
+        buildProduct({ storages: [{ code: 2000, name: ' ' }] })
+      );
+
+      expect(result.isAvailable).toBe(false);
+      expect(result.reasons).toEqual([UNAVAILABLE_REASON.STORAGE]);
+      expect(result.message).toContain('no tiene opciones de almacenamiento.');
+    });
   });
 
   it('no falla mientras el producto aún no ha llegado', () => {
