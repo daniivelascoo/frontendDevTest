@@ -1,0 +1,60 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+
+  /* Ligera translucidez al hacer scroll, sin perder legibilidad. */
+  backdrop-filter: saturate(180%) blur(8px);
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  margin-inline: auto;
+  padding: var(--space-3) var(--layout-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 40px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink);
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.brand:hover {
+  opacity: 0.7;
+}
+
+.brandIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .inner {
+    padding-block: var(--space-4);
+  }
+}
