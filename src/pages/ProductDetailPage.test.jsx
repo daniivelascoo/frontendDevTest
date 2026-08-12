@@ -240,16 +240,69 @@ describe('ProductDetailPage', () => {
       expect(screen.getByText('Precio no disponible')).toBeInTheDocument();
     });
 
-    it('sigue permitiendo la compra si las opciones sí llegan', async () => {
+    it('sigue mostrando los selectores aunque el producto no se pueda comprar', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
 
+      // Las opciones existen y se preseleccionan; lo que falta es el precio.
       expect(await screen.findByRole('radio', { name: '64 GB' })).toBeChecked();
-      expect(screen.getByRole('button', { name: /Añadir a la cesta/ })).toBeEnabled();
+      expect(screen.getByRole('radio', { name: 'Negro' })).toBeChecked();
+    });
+  });
+
+  describe('productos que no se pueden comprar', () => {
+    const addButton = () => screen.getByRole('button', { name: /Añadir a la cesta/ });
+
+    it('deshabilita el botón y explica el motivo cuando falta el precio', async () => {
+      // El fixture trae opciones de color y almacenamiento, pero `price: ''`.
+      mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
+
+      renderDetail();
+
+      expect(
+        await screen.findByText(
+          'Este producto no está disponible para la compra porque no tiene precio.'
+        )
+      ).toBeInTheDocument();
+      expect(addButton()).toBeDisabled();
     });
 
-    it('explica por qué no se puede comprar cuando faltan las opciones', async () => {
+    it('deshabilita el botón cuando faltan las opciones de almacenamiento', async () => {
+      mockFetch([
+        {
+          match: '/api/product/',
+          body: {
+            ...productDetailFixture,
+            options: { colors: productDetailFixture.options.colors, storages: [] },
+          },
+        },
+      ]);
+
+      renderDetail();
+
+      expect(await screen.findByText(/no tiene opciones de almacenamiento\./)).toBeInTheDocument();
+      expect(addButton()).toBeDisabled();
+    });
+
+    it('deshabilita el botón cuando faltan las opciones de color', async () => {
+      mockFetch([
+        {
+          match: '/api/product/',
+          body: {
+            ...productDetailFixture,
+            options: { colors: [], storages: productDetailFixture.options.storages },
+          },
+        },
+      ]);
+
+      renderDetail();
+
+      expect(await screen.findByText(/no tiene opciones de color\./)).toBeInTheDocument();
+      expect(addButton()).toBeDisabled();
+    });
+
+    it('enumera todos los motivos cuando falta más de una cosa', async () => {
       mockFetch([
         { match: '/api/product/', body: { ...incompleteProductFixture, options: undefined } },
       ]);
@@ -257,9 +310,46 @@ describe('ProductDetailPage', () => {
       renderDetail();
 
       expect(
-        await screen.findByText('Este producto no tiene opciones de compra disponibles.')
+        await screen.findByText(
+          'Este producto no está disponible para la compra porque no tiene precio, opciones de almacenamiento ni opciones de color.'
+        )
       ).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Añadir a la cesta/ })).toBeDisabled();
+      expect(addButton()).toBeDisabled();
+    });
+
+    it('asocia la explicación al botón para que un lector de pantalla la anuncie', async () => {
+      mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
+
+      renderDetail();
+
+      const message = await screen.findByText(/no está disponible para la compra/);
+
+      expect(addButton()).toHaveAttribute('aria-describedby', message.getAttribute('id'));
+    });
+
+    it('no llega a llamar al API aunque se fuerce el envío del formulario', async () => {
+      const fetchMock = mockFetch([
+        { match: '/api/cart', body: { count: 1 } },
+        { match: '/api/product/', body: incompleteProductFixture },
+      ]);
+
+      const { user } = renderDetail();
+      await screen.findByText(/no está disponible para la compra/);
+
+      await user.click(addButton());
+
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/cart'))).toBe(false);
+    });
+
+    it('no muestra ningún aviso cuando el producto sí se puede comprar', async () => {
+      mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
+
+      renderDetail();
+
+      await screen.findByRole('radio', { name: '16 GB' });
+
+      expect(screen.queryByText(/no está disponible para la compra/)).not.toBeInTheDocument();
+      expect(addButton()).toBeEnabled();
     });
   });
 

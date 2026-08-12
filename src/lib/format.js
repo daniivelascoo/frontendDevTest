@@ -23,10 +23,26 @@ const priceFormatter = new Intl.NumberFormat('es-ES', {
 export const MISSING_VALUE = '-';
 
 /**
- * Formatea un precio como moneda europea.
+ * Indica si un producto tiene precio.
  *
- * Algunos productos del catálogo llegan con `price: ""`, que significa
- * "no está a la venta" y no "cuesta 0 €".
+ * Algunos productos del catálogo llegan con `price: ""`, que significa "no
+ * está a la venta" y no "cuesta 0 €". Es la regla que decide tanto qué se
+ * pinta como si el producto se puede comprar, así que vive en un solo sitio:
+ * `formatPrice` y la comprobación de disponibilidad la comparten.
+ *
+ * Un precio de 0 sí cuenta como precio válido: es gratis, no es inexistente.
+ *
+ * @param {string | number | null | undefined} price
+ * @returns {boolean}
+ */
+export function hasPrice(price) {
+  if (price === null || price === undefined || price === '') return false;
+
+  return Number.isFinite(Number(price));
+}
+
+/**
+ * Formatea un precio como moneda europea.
  *
  * @param {string | number | null | undefined} price
  * @param {object} [options]
@@ -37,12 +53,9 @@ export const MISSING_VALUE = '-';
  * @returns {string}
  */
 export function formatPrice(price, { fallback = 'Precio no disponible' } = {}) {
-  if (price === null || price === undefined || price === '') return fallback;
+  if (!hasPrice(price)) return fallback;
 
-  const amount = Number(price);
-  if (!Number.isFinite(amount)) return fallback;
-
-  return priceFormatter.format(amount);
+  return priceFormatter.format(Number(price));
 }
 
 /**

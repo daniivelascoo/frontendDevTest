@@ -75,7 +75,8 @@ src/
 │   ├── storage.js     Adaptador de localStorage tolerante a fallos
 │   ├── search.js      Filtrado por marca y modelo
 │   ├── format.js      Precios, pesos y valores de especificación
-│   └── productSpecs.js Traducción del detalle del API a ficha técnica
+│   ├── productSpecs.js Traducción del detalle del API a ficha técnica
+│   └── availability.js Si un producto se puede comprar, y por qué no
 ├── hooks/       useProducts · useProduct · useAsyncResource · useDebouncedValue
 ├── context/     CartProvider (cesta) · BreadcrumbsProvider (migas de pan)
 ├── components/  layout/ · product/ · ui/
@@ -194,19 +195,46 @@ importancia del atributo:
 
 La misma idea se aplica fuera de la ficha: una tarjeta sin marca no deja el hueco
 vacío, un producto sin nombre conserva un encabezado legible para que el enlace
-tenga nombre accesible, una imagen que falta o falla muestra un marcador en vez
-del icono de imagen rota, y un producto sin opciones de compra explica por qué el
-botón está deshabilitado en lugar de dejarlo inerte.
+tenga nombre accesible, y una imagen que falta o falla muestra un marcador en vez
+del icono de imagen rota.
+
+### Productos que no se pueden comprar
+
+Un producto solo es comprable si cumple las tres condiciones: tiene **precio**,
+al menos una opción de **almacenamiento** y al menos una de **color**. Sin
+precio no hay nada que vender, y sin opciones no existen el `colorCode` ni el
+`storageCode` que exige el `POST /api/cart`: la petición no se podría ni
+construir.
+
+Cuando falla alguna, el botón de añadir se deshabilita y aparece un aviso que
+nombra **todos** los motivos:
+
+> Este producto no está disponible para la compra porque no tiene precio,
+> opciones de almacenamiento ni opciones de color.
+
+Se enumeran todos y no solo el primero porque una explicación que va cambiando
+—«falta el precio»; y luego «faltan los colores»— parece que busca excusas. El
+aviso se enlaza al botón con `aria-describedby`, de modo que un lector de
+pantalla lo anuncie al llegar a él: un botón deshabilitado y mudo deja al
+usuario adivinando.
+
+Los selectores se siguen mostrando aunque el producto no sea comprable, para que
+el usuario vea qué opciones existen. Y un precio de `0` cuenta como precio
+válido: significa gratis, no inexistente.
+
+La lógica vive en `lib/availability.js`, fuera del componente, para poder probar
+las combinaciones sin montar React.
 
 ## Tests
 
-118 tests con Vitest y Testing Library:
+138 tests con Vitest y Testing Library:
 
 | Archivo                                   | Qué cubre                                                                               |
 | ----------------------------------------- | --------------------------------------------------------------------------------------- |
 | `lib/cache.test.js`                       | Expiración a la hora, entradas corruptas, degradación a memoria                         |
 | `lib/search.test.js`                      | Filtrado por marca y modelo, acentos, orden de términos                                 |
 | `lib/format.test.js`                      | Precios ausentes, arrays de especificación, unidades                                    |
+| `lib/availability.test.js`                | Cuándo un producto no se puede comprar y cómo se explica el motivo                      |
 | `lib/productSpecs.test.js`                | Los once atributos obligatorios, las erratas del API y las dos reglas de datos ausentes |
 | `api/products.test.js`                    | Caché, deduplicación, errores de red y contrato del POST                                |
 | `context/CartProvider.test.jsx`           | Persistencia del contador y fallo del API                                               |
@@ -241,6 +269,10 @@ npm run test:coverage
 | POST a la cesta con `id`, `colorCode` y `storageCode`         | ✅     |
 | Contador de la cesta persistido y visible en todas las vistas | ✅     |
 | Caché de cliente con expiración de una hora                   | ✅     |
+
+Sobre el mínimo exigido, se añade el bloqueo de compra en productos incompletos:
+sin precio, sin almacenamiento o sin color, el botón se deshabilita y se explica
+el motivo.
 
 ## Licencia
 
