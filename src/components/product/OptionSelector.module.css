@@ -36,8 +36,8 @@
   position: relative;
 }
 
-/* El radio se oculta visualmente pero sigue recibiendo el foco: la etiqueta
-   es la superficie visible y el `:focus-visible` se refleja sobre ella. */
+/* The radio is visually hidden but still receives focus: the label is the
+   visible surface and `:focus-visible` is reflected onto it. */
 .input {
   position: absolute;
   opacity: 0;

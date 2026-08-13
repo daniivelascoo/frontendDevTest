@@ -1,11 +1,11 @@
 import { Component } from 'react';
 
 /**
- * Red de seguridad ante errores de render.
+ * Safety net for render errors.
  *
- * React desmonta el árbol entero si un componente lanza durante el render, así
- * que sin un límite de error un fallo puntual dejaría la página en blanco.
- * Tiene que ser un componente de clase: no existe equivalente con hooks.
+ * React unmounts the whole tree if a component throws during render, so without
+ * an error boundary a one-off failure would leave the page blank. It has to be
+ * a class component: there is no hook equivalent.
  */
 export class ErrorBoundary extends Component {
   constructor(props) {
@@ -18,8 +18,8 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // En un proyecto real, aquí iría el envío al servicio de monitorización.
-    console.error('Error no controlado en el árbol de React:', error, errorInfo);
+    // In a real project this is where the monitoring service call would go.
+    console.error('Unhandled error in the React tree:', error, errorInfo);
   }
 
   handleReset = () => {

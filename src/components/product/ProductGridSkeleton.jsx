@@ -2,16 +2,16 @@ import gridStyles from './ProductGrid.module.css';
 import styles from './ProductGridSkeleton.module.css';
 
 /**
- * Marcador de posición del catálogo mientras carga.
+ * Placeholder for the catalogue while it loads.
  *
- * Reutiliza la rejilla real para que el contenido aparezca en su sitio y no
- * haya salto de layout al sustituir el esqueleto por los productos.
+ * It reuses the real grid so the content appears in place and there is no
+ * layout shift when the skeleton is replaced by the products.
  *
  * @param {object} props
- * @param {number} [props.count] Tarjetas fantasma a dibujar.
- * @param {string} [props.label] Texto anunciado durante la carga. Se
- *   distingue el primer volcado del catálogo de las tandas posteriores para
- *   que un lector de pantalla sepa cuál de las dos está ocurriendo.
+ * @param {number} [props.count] Ghost cards to draw.
+ * @param {string} [props.label] Text announced during the load. The catalogue's
+ *   first paint is distinguished from later batches so a screen reader knows
+ *   which of the two is happening.
  */
 export function ProductGridSkeleton({ count = 8, label = 'Cargando productos' }) {
   return (

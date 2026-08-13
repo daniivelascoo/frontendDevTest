@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { sanitizeImageUrl } from '../../lib/imageUrl.js';
 import styles from './ProductImage.module.css';
 
 /**
- * Imagen de producto con marcador de posición y respaldo ante error.
+ * Product image with a placeholder and a fallback on error.
  *
- * Algunas imágenes del catálogo no existen en el servidor, así que un `<img>`
- * pelado dejaría el icono de imagen rota. Aquí el fallo se convierte en un
- * marcador neutro que conserva el hueco y no desmonta el layout.
+ * Some catalogue images do not exist on the server, so a bare `<img>` would
+ * leave the broken-image icon. Here the failure becomes a neutral placeholder
+ * that keeps the space and does not disturb the layout.
  *
  * @param {object} props
  * @param {string} [props.src]
@@ -15,17 +16,18 @@ import styles from './ProductImage.module.css';
  * @param {'lazy' | 'eager'} [props.loading]
  */
 export function ProductImage({ src, alt, variant = 'card', loading = 'lazy' }) {
-  // Se recorta antes de decidir: una URL de solo espacios es `truthy`, y
-  // pintarla haría que el navegador pidiese la propia página como imagen
-  // antes de acabar mostrando el respaldo igualmente.
-  const url = typeof src === 'string' ? src.trim() : '';
+  // The single point where the API's `src` reaches an `<img>`: both the list
+  // card and the detail page paint their image through this component, so
+  // sanitising here is enough. Anything failing validation falls back to the
+  // same placeholder that already covers broken images.
+  const url = sanitizeImageUrl(src);
 
   const [state, setState] = useState(url ? 'loading' : 'error');
   const [renderedSrc, setRenderedSrc] = useState(url);
 
-  // Si cambia la imagen, se reinicia el estado durante el propio render en
-  // lugar de en un efecto: así no se llega a pintar un fotograma con el
-  // estado de la imagen anterior.
+  // When the image changes, the state is reset during the render itself rather
+  // than in an effect: that way no frame is ever painted carrying the previous
+  // image's state.
   if (url !== renderedSrc) {
     setRenderedSrc(url);
     setState(url ? 'loading' : 'error');

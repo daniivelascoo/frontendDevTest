@@ -18,7 +18,7 @@
   text-align: center;
 }
 
-/* Enlace de salto: oculto hasta que recibe el foco por teclado. */
+/* Skip link: hidden until it receives keyboard focus. */
 .skipLink {
   position: absolute;
   left: var(--space-4);

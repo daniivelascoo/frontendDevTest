@@ -1,12 +1,12 @@
 import styles from './Button.module.css';
 
 /**
- * Botón de la aplicación.
+ * Application button.
  *
  * @param {object} props
  * @param {'primary' | 'secondary'} [props.variant]
  * @param {boolean} [props.fullWidth]
- * @param {boolean} [props.loading] Muestra el estado ocupado y bloquea el clic.
+ * @param {boolean} [props.loading] Shows the busy state and blocks clicks.
  * @param {import('react').ReactNode} props.children
  */
 export function Button({
@@ -27,8 +27,8 @@ export function Button({
     <button
       type={type}
       className={classNames}
-      // Se deshabilita durante la carga para impedir envíos duplicados, y
-      // `aria-busy` comunica el motivo a los lectores de pantalla.
+      // Disabled during the load to prevent duplicate submissions, with
+      // `aria-busy` conveying the reason to screen readers.
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...rest}

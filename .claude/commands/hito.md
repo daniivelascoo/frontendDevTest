@@ -1,29 +1,33 @@
 ---
-description: Cierra un hito del proyecto verificando y creando un commit con mensaje descriptivo
-argument-hint: [descripción breve del hito]
+description: Closes a project milestone by verifying and creating a commit with a descriptive message
+argument-hint: [short description of the milestone]
 allowed-tools: Bash(npm run check), Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Read
 ---
 
-El enunciado pide una entrega **evolutiva**: el histórico debe leerse como una
-sucesión de hitos con sentido propio. Este comando cierra uno.
+The brief asks for an **incremental** delivery: the history must read as a
+sequence of self-contained milestones. This command closes one.
 
-Hito a cerrar: $ARGUMENTS
+Milestone to close: $ARGUMENTS
 
-Pasos:
+Steps:
 
-1. Ejecuta `npm run check`. Si falla, **no** hagas el commit: arregla primero lo
-   que esté roto.
-2. Revisa `git status` y `git diff` para saber exactamente qué vas a confirmar.
-   Comprueba que no se cuela nada que no deba: `.env`, `dist/`, `node_modules/`,
-   archivos temporales.
-3. Añade los archivos que pertenecen al hito. Si el árbol contiene cambios de
-   dos temas distintos, dilo y pregunta antes de mezclarlos en un commit.
-4. Crea el commit siguiendo el formato de los anteriores (`git log --oneline`).
-   Convención del proyecto: `tipo: descripción en imperativo`, con los tipos
-   `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `style`.
+1. Run `npm run check`. If it fails, do **not** commit: fix what is broken
+   first.
+2. Review `git status` and `git diff` to know exactly what you are about to
+   commit. Check nothing slips in that should not: `.env`, `dist/`,
+   `node_modules/`, temporary files.
+3. Stage the files belonging to the milestone. If the tree contains changes from
+   two different topics, say so and ask before mixing them into one commit.
+4. Create the commit following the format of the previous ones
+   (`git log --oneline`). Project convention: `type: description in the
+imperative`, with the types `feat`, `fix`, `test`, `docs`, `chore`,
+   `refactor`, `style`.
 
-El cuerpo del mensaje explica **qué aporta el hito y por qué**, no la lista de
-archivos tocados —eso ya está en el diff—. En castellano, como el resto del
-proyecto.
+The message body explains **what the milestone adds and why**, not the list of
+files touched — that is already in the diff.
 
-No hagas `push` salvo que te lo pidan explícitamente.
+Commit messages are written **in Spanish**, unlike the rest of the
+documentation. The existing history is in Spanish and cannot be rewritten, so
+switching language now would leave the log half and half.
+
+Do not `push` unless explicitly asked.

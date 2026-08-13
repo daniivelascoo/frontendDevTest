@@ -2,19 +2,19 @@ import { useEffect } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
 /**
- * Lleva el scroll al inicio al navegar a una ruta nueva.
+ * Scrolls to the top when navigating to a new route.
  *
- * Una SPA no recarga el documento, así que sin esto se entraría en la ficha de
- * un producto a la misma altura de scroll que tenía el listado.
+ * An SPA does not reload the document, so without this you would land on a
+ * product's detail page at the same scroll offset the list had.
  *
- * Dos excepciones deliberadas:
+ * Two deliberate exceptions:
  *
- *   - **Navegación hacia atrás o adelante** (`POP`): ahí el usuario espera
- *     volver justo donde estaba. Saltar arriba sería especialmente molesto con
- *     el scroll infinito del listado, que obligaría a recorrerlo otra vez.
- *   - **Cambios de query string**: el buscador la reescribe en cada pulsación,
- *     y saltar arriba en cada tecla sería peor que no hacer nada. Por eso solo
- *     se observa `pathname`.
+ *   - **Back or forward navigation** (`POP`): there the user expects to return
+ *     exactly where they were. Jumping to the top would be especially annoying
+ *     with the list's infinite scroll, forcing them to scroll through it again.
+ *   - **Query string changes**: the search box rewrites it on every keystroke,
+ *     and jumping to the top on every key would be worse than doing nothing.
+ *     That is why only `pathname` is watched.
  */
 export function ScrollToTop() {
   const { pathname } = useLocation();

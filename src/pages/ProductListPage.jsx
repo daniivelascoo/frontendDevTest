@@ -12,18 +12,18 @@ import { invalidateProductCache } from '../api/products.js';
 import { readListPosition, saveListPosition } from '../lib/listPosition.js';
 import styles from './ProductListPage.module.css';
 
-/** Parámetro de la URL que guarda el criterio de búsqueda. */
+/** URL parameter holding the search term. */
 const QUERY_PARAM = 'q';
 
-/** Productos por tanda del scroll infinito. */
+/** Products per infinite-scroll batch. */
 const PAGE_SIZE = 12;
 
 /**
  * PLP — Product List Page.
  *
- * El criterio de búsqueda vive en la URL y no en el estado del componente.
- * Así una búsqueda es compartible, sobrevive al recargar y —lo que más se
- * nota al usarlo— sigue ahí al volver desde la ficha de un producto.
+ * The search term lives in the URL rather than in component state. That makes a
+ * search shareable, lets it survive a reload and — the part you notice most in
+ * use — keeps it there when coming back from a product detail page.
  */
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,8 +38,8 @@ export function ProductListPage() {
           else next.delete(QUERY_PARAM);
           return next;
         },
-        // Se reemplaza la entrada del historial: escribir en el buscador no
-        // debe llenar el historial de un paso por cada tecla.
+        // The history entry is replaced: typing in the search box must not
+        // fill the history with one step per keystroke.
         { replace: true }
       );
     },
@@ -49,8 +49,8 @@ export function ProductListPage() {
   const { products, allProducts, status, error, isLoading, isFiltering, reload } =
     useProducts(query);
 
-  // Posición guardada al entrar en una ficha, para no devolver al usuario a la
-  // primera tanda al volver atrás. Se lee una sola vez, al montar.
+  // Position stored when entering a detail page, so going back does not return
+  // the user to the first batch. Read once, on mount.
   const restoredCount = useRef(readListPosition(query));
 
   const { visibleItems, visibleCount, totalCount, hasMore, isLoadingMore, loadMore, sentinelRef } =
@@ -61,8 +61,8 @@ export function ProductListPage() {
     });
 
   useEffect(() => {
-    // Mientras el catálogo carga no hay nada visible, y guardar ese cero
-    // borraría la posición que acabamos de restaurar.
+    // While the catalogue loads nothing is visible, and storing that zero
+    // would wipe the position we have just restored.
     if (visibleCount > 0) saveListPosition(query, visibleCount);
   }, [query, visibleCount]);
 

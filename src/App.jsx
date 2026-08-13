@@ -8,11 +8,11 @@ import { ProductDetailPage } from './pages/ProductDetailPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
 
 /**
- * Composición de la aplicación: proveedores de estado y tabla de rutas.
+ * Application composition: state providers and the routing table.
  *
- * El router se monta fuera (en `main.jsx` para la aplicación y en el helper de
- * los tests para las pruebas), de modo que este componente pueda renderizarse
- * con un `MemoryRouter` sin tocar nada.
+ * The router is mounted outside (in `main.jsx` for the application, and in the
+ * test helper for the tests), so this component can be rendered with a
+ * `MemoryRouter` without changing anything.
  */
 export function App() {
   return (

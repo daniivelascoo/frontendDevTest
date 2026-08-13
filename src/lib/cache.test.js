@@ -3,11 +3,11 @@ import { createCache, ONE_HOUR_MS } from './cache.js';
 import { createTestStorage } from '../test/helpers.js';
 
 /**
- * La expiración a la hora es un requisito explícito del enunciado, así que se
- * verifica con un reloj inyectado en lugar de con esperas reales.
+ * The one-hour expiry is an explicit requirement of the brief, so it is
+ * verified with an injected clock rather than with real waits.
  */
 describe('createCache', () => {
-  /** Crea una caché con reloj controlable. */
+  /** Creates a cache with a controllable clock. */
   function setup({ ttlMs = ONE_HOUR_MS } = {}) {
     let currentTime = 1_700_000_000_000;
 
@@ -26,7 +26,7 @@ describe('createCache', () => {
     };
   }
 
-  it('devuelve el valor almacenado antes de que expire', () => {
+  it('returns the stored value before it expires', () => {
     const { cache } = setup();
 
     cache.set('products', [{ id: '1' }]);
@@ -35,14 +35,14 @@ describe('createCache', () => {
     expect(cache.has('products')).toBe(true);
   });
 
-  it('devuelve undefined para una clave que nunca se ha guardado', () => {
+  it('returns undefined for a key that was never stored', () => {
     const { cache } = setup();
 
     expect(cache.get('desconocida')).toBeUndefined();
     expect(cache.has('desconocida')).toBe(false);
   });
 
-  it('mantiene la entrada válida hasta un instante antes de la hora', () => {
+  it('keeps the entry valid until an instant before the hour', () => {
     const { cache, advanceBy } = setup();
 
     cache.set('products', 'valor');
@@ -51,7 +51,7 @@ describe('createCache', () => {
     expect(cache.get('products')).toBe('valor');
   });
 
-  it('expira la entrada exactamente al cumplirse la hora', () => {
+  it('expires the entry exactly on the hour', () => {
     const { cache, advanceBy } = setup();
 
     cache.set('products', 'valor');
@@ -61,7 +61,7 @@ describe('createCache', () => {
     expect(cache.has('products')).toBe(false);
   });
 
-  it('expira la entrada pasada la hora', () => {
+  it('expires the entry past the hour', () => {
     const { cache, advanceBy } = setup();
 
     cache.set('products', 'valor');
@@ -70,7 +70,7 @@ describe('createCache', () => {
     expect(cache.get('products')).toBeUndefined();
   });
 
-  it('respeta el TTL con el que se escribió la entrada', () => {
+  it('honours the TTL the entry was written with', () => {
     const { cache, advanceBy } = setup();
 
     cache.set('efimera', 'valor', 5_000);
@@ -79,7 +79,7 @@ describe('createCache', () => {
     expect(cache.get('efimera')).toBeUndefined();
   });
 
-  it('renueva la expiración al reescribir la clave', () => {
+  it('renews the expiry when the key is rewritten', () => {
     const { cache, advanceBy } = setup();
 
     cache.set('products', 'primero');
@@ -91,7 +91,7 @@ describe('createCache', () => {
     expect(cache.get('products')).toBe('segundo');
   });
 
-  it('descarta entradas corruptas en lugar de propagar el error de parseo', () => {
+  it('discards corrupt entries instead of propagating the parse error', () => {
     const storage = createTestStorage();
     const cache = createCache({ namespace: 'test', storage });
 
@@ -99,11 +99,11 @@ describe('createCache', () => {
 
     expect(() => cache.get('products')).not.toThrow();
     expect(cache.get('products')).toBeUndefined();
-    // La entrada inservible se elimina para que se revalide contra el API.
+    // The unusable entry is removed so it gets revalidated against the API.
     expect(storage.getItem('test:products')).toBeNull();
   });
 
-  it('descarta entradas sin marca de expiración', () => {
+  it('discards entries without an expiry marker', () => {
     const storage = createTestStorage();
     const cache = createCache({ namespace: 'test', storage });
 
@@ -112,7 +112,7 @@ describe('createCache', () => {
     expect(cache.get('products')).toBeUndefined();
   });
 
-  it('elimina una clave concreta', () => {
+  it('removes a specific key', () => {
     const { cache } = setup();
 
     cache.set('a', 1);
@@ -123,7 +123,7 @@ describe('createCache', () => {
     expect(cache.get('b')).toBe(2);
   });
 
-  it('al limpiar solo borra las claves de su propio namespace', () => {
+  it('only clears the keys of its own namespace', () => {
     const storage = createTestStorage();
     const cache = createCache({ namespace: 'test', storage });
 
@@ -136,37 +136,37 @@ describe('createCache', () => {
     expect(storage.getItem('otro-namespace:dato')).toBe('intacto');
   });
 
-  it('degrada a memoria si el almacenamiento no es utilizable', () => {
+  it('degrades to memory if the storage is not usable', () => {
     const storage = createTestStorage();
     vi.spyOn(storage, 'setItem').mockImplementation(() => {
       throw new Error('SecurityError');
     });
 
-    // El sondeo inicial detecta que el storage no sirve y se sustituye por uno
-    // en memoria, de modo que la caché sigue operativa durante la sesión.
+    // The initial probe detects the storage is no good and swaps it for an
+    // in-memory one, so the cache stays operational for the session.
     const cache = createCache({ namespace: 'test', storage });
 
     expect(cache.set('products', 'valor')).toBe(true);
     expect(cache.get('products')).toBe('valor');
   });
 
-  it('no propaga el error si el almacenamiento se agota una vez en uso', () => {
+  it('does not propagate the error if storage runs out once in use', () => {
     const storage = createTestStorage();
     const cache = createCache({ namespace: 'test', storage });
 
-    // Falla después del sondeo: es el caso real de cuota agotada a mitad de
-    // sesión, que el sondeo inicial no puede anticipar.
+    // Fails after the probe: the real case of quota exhausted mid-session,
+    // which the initial probe cannot anticipate.
     vi.spyOn(storage, 'setItem').mockImplementation(() => {
       throw new Error('QuotaExceededError');
     });
 
     expect(() => cache.set('products', 'valor')).not.toThrow();
     expect(cache.set('products', 'valor')).toBe(false);
-    // Y la lectura simplemente no encuentra nada, forzando la revalidación.
+    // And the read simply finds nothing, forcing revalidation.
     expect(cache.get('products')).toBeUndefined();
   });
 
-  it('almacena valores falsy sin confundirlos con la ausencia de entrada', () => {
+  it('stores falsy values without confusing them with a missing entry', () => {
     const { cache } = setup();
 
     cache.set('cero', 0);

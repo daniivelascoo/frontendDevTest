@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
- * Muestra una lista por tandas, ampliándola al llegar el usuario al final.
+ * Shows a list in batches, extending it as the user reaches the end.
  *
- * El API devuelve los 100 productos de una vez y no admite parámetros de
- * paginado, así que aquí no se carga nada: solo se decide cuántos elementos de
- * los que ya están en memoria se renderizan. Eso evita montar 100 tarjetas —y
- * sus 100 imágenes— en la primera pintura.
+ * The API returns all 100 products at once and accepts no paging parameters, so
+ * nothing is loaded here: it only decides how many of the items already in
+ * memory get rendered. That avoids mounting 100 cards — and their 100 images —
+ * on the first paint.
  *
- * Se expone `loadMore` además del centinela porque el scroll infinito por sí
- * solo excluye a quien navega con teclado: sin un control real que enfocar, no
- * hay forma de pedir la siguiente tanda. La página monta ambos.
+ * `loadMore` is exposed alongside the sentinel because infinite scroll on its
+ * own excludes keyboard users: without a real control to focus, there is no way
+ * to request the next batch. The page mounts both.
  *
  * @template T
- * @param {T[]} items Lista completa, ya filtrada.
+ * @param {T[]} items Full list, already filtered.
  * @param {object} [options]
- * @param {number} [options.pageSize] Elementos por tanda.
- * @param {string} [options.resetKey] Al cambiar, se vuelve a la primera tanda.
- * @param {number} [options.initialCount] Elementos visibles al montar.
- * @param {number} [options.delayMs] Pausa antes de mostrar la siguiente tanda.
+ * @param {number} [options.pageSize] Items per batch.
+ * @param {string} [options.resetKey] When it changes, the list goes back to the first batch.
+ * @param {number} [options.initialCount] Items visible on mount.
+ * @param {number} [options.delayMs] Pause before showing the next batch.
  * @returns {{
  *   visibleItems: T[],
  *   visibleCount: number,
@@ -35,10 +35,10 @@ export function useInfiniteScroll(
 ) {
   const totalCount = items.length;
 
-  // No se acota contra `totalCount`: al montar, la lista todavía está vacía
-  // porque los datos no han llegado, así que acotar aquí reduciría siempre la
-  // posición restaurada a una sola tanda. El recorte real lo hace el `slice`,
-  // que nunca devuelve más elementos de los que hay.
+  // Not clamped against `totalCount`: on mount the list is still empty because
+  // the data has not arrived, so clamping here would always reduce the restored
+  // position to a single batch. The real clamping is done by the `slice`, which
+  // never returns more items than exist.
   const [visibleCount, setVisibleCount] = useState(() =>
     Math.max(initialCount ?? pageSize, pageSize)
   );
@@ -49,9 +49,9 @@ export function useInfiniteScroll(
   const isFirstRender = useRef(true);
   const timeoutRef = useRef(null);
 
-  // El estado se duplica en una ref para que `loadMore` no cambie de identidad
-  // al empezar la carga. Si cambiase, el efecto del observador volvería a
-  // suscribirse a mitad de la pausa y dispararía otra tanda.
+  // The state is mirrored in a ref so `loadMore` does not change identity when
+  // the load starts. If it did, the observer effect would resubscribe mid-pause
+  // and fire another batch.
   const isLoadingRef = useRef(false);
 
   const cancelPending = useCallback(() => {
@@ -62,39 +62,39 @@ export function useInfiniteScroll(
     isLoadingRef.current = false;
   }, []);
 
-  // Al cambiar el criterio de búsqueda, la lista es otra: seguir en la tanda
-  // quinta de una lista que ahora tiene tres elementos no tendría sentido.
+  // When the search term changes the list is a different one: staying on the
+  // fifth batch of a list that now has three items would make no sense.
   useEffect(() => {
-    // En el primer render no: pisaría el `initialCount` con el que la página
-    // restaura la posición al volver desde la ficha de un producto.
+    // Not on the first render: it would overwrite the `initialCount` the page
+    // uses to restore the position when coming back from a product detail page.
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
 
-    // Una tanda en curso pertenece a la lista anterior; añadirla ahora
-    // ampliaría unos resultados que ya no son los que el usuario ve.
+    // An in-flight batch belongs to the previous list; appending it now would
+    // extend results that are no longer the ones the user is looking at.
     cancelPending();
     setIsLoadingMore(false);
     setVisibleCount(pageSize);
   }, [resetKey, pageSize, cancelPending]);
 
-  // Al desmontar, el temporizador pendiente no debe intentar actualizar estado.
+  // On unmount, the pending timer must not try to update state.
   useEffect(() => cancelPending, [cancelPending]);
 
   const hasMore = visibleCount < totalCount;
 
   /**
-   * Amplía la lista tras una pausa deliberada.
+   * Extends the list after a deliberate pause.
    *
-   * Los productos ya están en memoria, así que técnicamente podrían aparecer al
-   * instante. La pausa existe para el usuario: sin ella, la tanda nueva surge
-   * de golpe y nada indica que haya ocurrido una carga. Con ella, el indicador
-   * llega a verse y el crecimiento de la lista se entiende.
+   * The products are already in memory, so technically they could appear
+   * instantly. The pause exists for the user: without it, the new batch pops in
+   * all at once and nothing indicates that a load happened. With it, the
+   * indicator becomes visible and the list's growth makes sense.
    */
   const loadMore = useCallback(() => {
-    // El observador puede dispararse varias veces seguidas mientras dura la
-    // pausa; sin esta guarda se encadenarían varias tandas de golpe.
+    // The observer can fire several times in a row while the pause lasts;
+    // without this guard, several batches would be chained at once.
     if (isLoadingRef.current) return;
 
     isLoadingRef.current = true;
@@ -111,16 +111,16 @@ export function useInfiniteScroll(
   useEffect(() => {
     const sentinel = sentinelRef.current;
 
-    // Sin centinela, sin más elementos que mostrar o sin soporte del
-    // navegador, el botón «Cargar más» sigue estando disponible.
+    // With no sentinel, nothing more to show, or no browser support, the
+    // "load more" button is still available.
     if (!sentinel || !hasMore || typeof IntersectionObserver === 'undefined') return undefined;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) loadMore();
       },
-      // Se anticipa media pantalla para que la siguiente tanda esté lista
-      // antes de que el usuario llegue al vacío.
+      // Half a screen of lead time, so the next batch is ready before the user
+      // reaches the empty space.
       { rootMargin: '50% 0px' }
     );
 

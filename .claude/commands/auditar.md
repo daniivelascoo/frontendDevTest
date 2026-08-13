@@ -1,16 +1,17 @@
 ---
-description: Audita el proyecto contra los requisitos del enunciado y devuelve un informe de cumplimiento
+description: Audits the project against the requirements of the brief and returns a compliance report
 allowed-tools: Task, Read, Grep, Glob, Bash(npm test)
 ---
 
-Lanza el agente `auditor-spec` para contrastar el estado actual del proyecto con
-los requisitos del enunciado de la prueba técnica.
+Launch the `auditor-spec` agent to contrast the current state of the project
+with the requirements of the technical test brief.
 
 $ARGUMENTS
 
-Cuando el agente termine, traslada su informe íntegro: la tabla de requisitos con
-su estado y evidencia, y las listas de bloqueantes y mejoras. El informe del
-agente no lo ve el usuario, así que resúmelo tú sin omitir ningún ❌ ni ⚠️.
+When the agent finishes, relay its report in full: the requirements table with
+status and evidence, and the lists of blockers and improvements. The user does
+not see the agent's report, so you must summarise it without dropping a single
+❌ or ⚠️.
 
-Después, propón el siguiente paso concreto —qué arreglarías primero y por qué—,
-pero no empieces a implementarlo sin que te lo confirmen.
+Then propose the next concrete step — what you would fix first and why — but do
+not start implementing it without confirmation.

@@ -34,7 +34,7 @@
   color: var(--color-ink);
   font-weight: var(--weight-medium);
 
-  /* Los nombres de producto largos no deben empujar al contador de la cesta. */
+  /* Long product names must not push the cart counter out of place. */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

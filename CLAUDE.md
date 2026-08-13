@@ -1,69 +1,81 @@
 # CLAUDE.md
 
-Miniaplicación SPA para la compra de dispositivos móviles. Es una prueba técnica
-de front-end: el evaluador va a leer el código y el histórico de git, así que
-ambas cosas forman parte del entregable.
+SPA mini-application for buying mobile devices. It is a front-end technical
+test: the reviewer will read both the code and the git history, so the two of
+them are part of the deliverable.
 
-## Comandos
+## Commands
 
 ```bash
-npm start                # desarrollo en http://localhost:3000
-npm run build            # build de producción
-npm test                 # tests (una pasada)
-npm run test:watch       # tests en observación
+npm start                # development server at http://localhost:3000
+npm run build            # production build
+npm test                 # tests (single run)
+npm run test:watch       # tests in watch mode
 npm run lint             # ESLint
-npm run check            # lint + formato + tests + build
-npx vitest run src/lib   # tests de una carpeta concreta
+npm run check            # lint + format + tests + build
+npx vitest run src/lib   # tests for a single folder
 ```
 
-Los cuatro primeros scripts los exige el enunciado: **no los renombres**.
+The first four scripts are required by the brief: **do not rename them**.
 
-## Documentación cargable
+## Loadable documentation
 
-Antes de trabajar, invoca la skill que corresponda; contienen el detalle que
-aquí no se repite.
+Invoke the matching skill before working; they hold the detail that is not
+repeated here.
 
-| Skill                | Cuándo                                                                  |
-| -------------------- | ----------------------------------------------------------------------- |
-| `spec-itx`           | Qué debe hacer la aplicación: requisitos, contrato del API, sus erratas |
-| `convenciones-react` | Cómo se escribe el código: estructura, componentes, CSS, estado         |
-| `testing-rtl`        | Cómo se escriben los tests: helpers, fixtures, trampas conocidas        |
+| Skill                | When                                                                |
+| -------------------- | ------------------------------------------------------------------- |
+| `spec-itx`           | What the application must do: requirements, API contract, its typos |
+| `convenciones-react` | How the code is written: structure, components, CSS, state          |
+| `testing-rtl`        | How tests are written: helpers, fixtures, known pitfalls            |
 
-Agentes: `auditor-spec` (cumplimiento del enunciado), `revisor-react` (revisión
-de código), `autor-tests` (cobertura que falta).
+Agents: `auditor-spec` (brief compliance), `revisor-react` (code review),
+`autor-tests` (missing coverage).
 
-Comandos: `/verificar`, `/hito`, `/componente`, `/auditar`.
+Commands: `/verificar`, `/hito`, `/componente`, `/auditar`.
 
-## Arquitectura en una pantalla
+Skill, agent and command names stay in Spanish: they are identifiers you type
+or reference, not prose. Everything else — documentation, comments, JSDoc and
+test names — is written in English. The user-facing UI strings stay in Spanish,
+because they are the product.
+
+## Architecture on one screen
 
 ```
-pages/       Una vista del router. Orquestan; no contienen lógica de negocio.
-components/  Presentación, agrupada en layout/ · product/ · ui/
+pages/       One router view. They orchestrate; they hold no business logic.
+components/  Presentation, grouped into layout/ · product/ · ui/
 hooks/       useProducts, useProduct, useAsyncResource, useDebouncedValue
-context/     CartProvider (cesta) · BreadcrumbsProvider (migas)
-api/         Único punto que conoce el API: http.js + products.js
-lib/         Lógica pura sin React: cache, search, format, productSpecs, storage
+context/     CartProvider (cart) · BreadcrumbsProvider (breadcrumbs)
+api/         The only layer that knows the API: http.js + products.js
+lib/         Pure logic without React: cache, search, format, productSpecs,
+             storage, imageUrl
 ```
 
-Las dependencias van siempre en la dirección `pages → components → hooks → lib`.
-Un archivo de `lib/` que importe React está en la capa equivocada.
+Dependencies always run in the direction `pages → components → hooks → lib`.
+A file in `lib/` that imports React is in the wrong layer.
 
-## Decisiones que conviene no deshacer sin motivo
+## Decisions worth not undoing without a reason
 
-- **La caché es un singleton de módulo** (`appCache` en `lib/cache.js`) y
-  `api/products.js` deduplica las peticiones en vuelo. Esto es lo que evita que
-  el doble montaje de StrictMode dispare peticiones duplicadas. En los tests hay
-  que llamar a `invalidateProductCache()` en el `beforeEach`.
-- **El `AbortSignal` del llamante no se propaga a la petición compartida.** Si se
-  propagara, desmontar un componente cancelaría la petición que otros están
-  esperando. La cancelación se resuelve en `useAsyncResource`, descartando el
-  resultado en lugar de abortar la red.
-- **El criterio de búsqueda vive en la URL** (`?q=`), no en el estado del
-  componente: así sobrevive al volver desde la ficha de un producto.
-- **El contador de la cesta usa una clave de storage propia**, fuera del
-  namespace de la caché, para que no lo borre ni la expiración ni un reintento.
+- **The cache is a module singleton** (`appCache` in `lib/cache.js`) and
+  `api/products.js` de-duplicates in-flight requests. This is what stops
+  StrictMode's double mount from firing duplicate requests. Tests must call
+  `invalidateProductCache()` in their `beforeEach`.
+- **The caller's `AbortSignal` is not propagated to the shared request.** If it
+  were, unmounting one component would cancel the request others are waiting
+  on. Cancellation is handled in `useAsyncResource`, which discards the result
+  instead of aborting the network.
+- **The search term lives in the URL** (`?q=`), not in component state, so it
+  survives coming back from a product detail page.
+- **The cart counter uses its own storage key**, outside the cache namespace,
+  so neither expiry nor a retry can wipe it.
+- **Image URLs from the API are sanitised** in `lib/imageUrl.js`, applied in
+  `ProductImage.jsx` — the single point where an API `src` reaches an `<img>`.
+  React escapes text but does not validate `src`.
+- **The CSP is injected from `vite.config.js`, build only.** A fixed `<meta>`
+  in `index.html` would block Vite's HMR WebSocket and React Refresh during
+  development.
 
-## Al terminar cualquier cambio
+## When finishing any change
 
-`npm run check` tiene que pasar. El hook de `PostToolUse` ya formatea y analiza
-cada archivo que tocas, así que rara vez debería sorprenderte.
+`npm run check` has to pass. The `PostToolUse` hook already formats and lints
+every file you touch, so it should rarely surprise you.

@@ -4,11 +4,11 @@ import { CartIndicator } from './CartIndicator.jsx';
 import styles from './Header.module.css';
 
 /**
- * Cabecera de la aplicación, presente en ambas vistas.
+ * Application header, present on both views.
  *
- * Reúne los tres elementos que pide el enunciado: el título como enlace a la
- * vista principal, las migas de pan de la página actual y el contador de la
- * cesta a la derecha.
+ * It gathers the three elements the brief asks for: the title as a link to the
+ * main view, the breadcrumbs of the current page, and the cart counter on the
+ * right.
  */
 export function Header() {
   return (

@@ -40,7 +40,7 @@
   letter-spacing: -0.01em;
 }
 
-/* Las dos columnas del enunciado: imagen y detalles. */
+/* The two columns required by the brief: image and details. */
 .columns {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);

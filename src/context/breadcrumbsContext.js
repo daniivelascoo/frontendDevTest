@@ -2,18 +2,18 @@ import { createContext, useContext, useEffect, useMemo } from 'react';
 
 /**
  * @typedef {object} Crumb
- * @property {string} label Texto visible.
- * @property {string} [to] Destino; si se omite, la miga es la página actual.
+ * @property {string} label Visible text.
+ * @property {string} [to] Destination; when omitted, the crumb is the current page.
  */
 
 /** @type {import('react').Context<{ trail: Crumb[], setTrail: (trail: Crumb[]) => void } | null>} */
 export const BreadcrumbsContext = createContext(null);
 
 /**
- * Lee el rastro de migas actual. Lo consume la cabecera.
+ * Reads the current breadcrumb trail. Consumed by the header.
  *
- * Fuera del provider devuelve un rastro vacío en lugar de lanzar: unas migas
- * ausentes no deben impedir que se renderice un componente aislado en un test.
+ * Outside the provider it returns an empty trail instead of throwing: missing
+ * breadcrumbs must not stop an isolated component from rendering in a test.
  *
  * @returns {Crumb[]}
  */
@@ -22,11 +22,11 @@ export function useBreadcrumbs() {
 }
 
 /**
- * Publica el rastro de migas de la página actual.
+ * Publishes the breadcrumb trail of the current page.
  *
- * Invertir el control así —la página declara dónde está, la cabecera lo
- * pinta— evita que la cabecera tenga que conocer las rutas ni volver a pedir
- * el producto solo para saber su nombre.
+ * Inverting control this way — the page declares where it is, the header paints
+ * it — saves the header from having to know the routes or re-request the
+ * product just to learn its name.
  *
  * @param {Crumb[]} trail
  */
@@ -34,8 +34,8 @@ export function useSetBreadcrumbs(trail) {
   const context = useContext(BreadcrumbsContext);
   const setTrail = context?.setTrail;
 
-  // El rastro suele construirse en línea, así que se compara por valor y no
-  // por referencia para no reprogramar el efecto en cada render.
+  // The trail is usually built inline, so it is compared by value rather than
+  // by reference to avoid rescheduling the effect on every render.
   const serializedTrail = JSON.stringify(trail);
 
   const stableTrail = useMemo(() => JSON.parse(serializedTrail), [serializedTrail]);

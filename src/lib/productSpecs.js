@@ -7,37 +7,37 @@ import {
 } from './format.js';
 
 /**
- * Traduce el detalle crudo del API a las especificaciones que muestra la PDP.
+ * Translates the raw API detail into the specifications shown on the PDP.
  *
- * Dos detalles del contrato del API que conviene tener presentes:
+ * Two details of the API contract worth keeping in mind:
  *
- *   - Hay erratas en los nombres de campo (`dimentions`, `secondaryCmera`).
- *     Se respetan al leer y se corrigen al mostrar.
- *   - `displayResolution` contiene en realidad el **tamaño** en pulgadas
- *     ("7.0 inches (~69.8%...)") y `displaySize` contiene la **resolución** en
- *     píxeles ("720 x 1280 pixels..."). Están intercambiados respecto a su
- *     nombre, así que la etiqueta se asigna según el contenido real.
+ *   - There are typos in the field names (`dimentions`, `secondaryCmera`).
+ *     They are respected when reading and corrected when displaying.
+ *   - `displayResolution` actually holds the **size** in inches
+ *     ("7.0 inches (~69.8%...)") and `displaySize` holds the **resolution** in
+ *     pixels ("720 x 1280 pixels..."). They are swapped with respect to their
+ *     names, so the label is assigned by actual content.
  */
 
 /**
- * Especificaciones exigidas por el enunciado.
+ * Specifications required by the brief.
  *
- * Estas filas se muestran **siempre**, incluso sin dato: en ese caso el valor
- * es `MISSING_VALUE`. Mantener la fila permite comparar dos fichas línea a
- * línea y deja claro que el atributo se ha consultado y el API no lo aporta,
- * que no es lo mismo que omitirlo sin más.
+ * These rows are shown **always**, even without data: in that case the value is
+ * `MISSING_VALUE`. Keeping the row lets you compare two spec sheets line by line
+ * and makes clear that the attribute was looked up and the API does not provide
+ * it, which is not the same as simply omitting it.
  *
- * Es el criterio opuesto al de `getAdditionalSpecGroups`, donde una fila sin
- * dato solo sería ruido.
+ * This is the opposite criterion to `getAdditionalSpecGroups`, where a row
+ * without data would only be noise.
  *
- * @param {object} product Detalle de producto del API.
+ * @param {object} product Product detail from the API.
  * @returns {Array<{ id: string, label: string, value: string }>}
  */
 export function getRequiredSpecs(product) {
   if (!product) return [];
 
-  // Un producto puede traer solo una de las dos cámaras: se muestran las que
-  // haya, y el marcador únicamente si faltan ambas.
+  // A product may carry only one of the two cameras: whichever exist are shown,
+  // and the placeholder appears only if both are missing.
   const cameras = [formatSpecValue(product.primaryCamera), formatSpecValue(product.secondaryCmera)]
     .filter(Boolean)
     .join(' · ');
@@ -45,7 +45,7 @@ export function getRequiredSpecs(product) {
   return [
     { id: 'brand', label: 'Marca', value: formatSpecValueOrFallback(product.brand) },
     { id: 'model', label: 'Modelo', value: formatSpecValueOrFallback(product.model) },
-    // La fila ya está etiquetada como "Precio", así que basta con el marcador.
+    // The row is already labelled "Precio", so the placeholder is enough.
     {
       id: 'price',
       label: 'Precio',
@@ -57,7 +57,7 @@ export function getRequiredSpecs(product) {
     {
       id: 'displayResolution',
       label: 'Resolución de pantalla',
-      // `displaySize` es el campo que trae los píxeles (ver nota superior).
+      // `displaySize` is the field carrying the pixels (see note above).
       value: formatSpecValueOrFallback(product.displaySize),
     },
     { id: 'battery', label: 'Batería', value: formatSpecValueOrFallback(product.battery) },
@@ -72,18 +72,17 @@ export function getRequiredSpecs(product) {
 }
 
 /**
- * Especificaciones complementarias, agrupadas por bloque temático. No las pide
- * el enunciado; enriquecen la ficha sin ensuciar el bloque obligatorio.
+ * Complementary specifications, grouped by topic. The brief does not ask for
+ * them; they enrich the page without cluttering the mandatory block.
  *
- * A diferencia de las obligatorias, **una fila sin dato se omite por completo**
- * en lugar de mostrar un marcador. Si el API no trae la GPU, no aparece ni la
- * etiqueta "GPU": aquí el hueco no informaría de nada y, multiplicado por las
- * veinte filas del bloque, convertiría la ficha en una lista de ausencias.
+ * Unlike the mandatory ones, **a row without data is omitted entirely** instead
+ * of showing a placeholder. If the API has no GPU, not even the "GPU" label
+ * appears: here the gap would convey nothing and, multiplied by the twenty rows
+ * of the block, would turn the page into a list of absences.
  *
- * Un grupo que se queda sin ninguna fila desaparece también, para no dejar un
- * título huérfano.
+ * A group left with no rows disappears too, so no orphan heading is left behind.
  *
- * @param {object} product Detalle de producto del API.
+ * @param {object} product Product detail from the API.
  * @returns {Array<{ id: string, title: string, specs: Array<{ id: string, label: string, value: string }> }>}
  */
 export function getAdditionalSpecGroups(product) {
@@ -96,7 +95,7 @@ export function getAdditionalSpecGroups(product) {
       title: 'Pantalla',
       fields: [
         ['Tipo', product.displayType],
-        // `displayResolution` trae las pulgadas (ver nota superior).
+        // `displayResolution` carries the inches (see note above).
         ['Tamaño', product.displayResolution],
       ],
     },
@@ -154,24 +153,24 @@ export function getAdditionalSpecGroups(product) {
 }
 
 /**
- * Normaliza las opciones de compra.
+ * Normalises the purchase options.
  *
- * El enunciado exige mostrar el selector aunque solo haya una opción y dejarla
- * seleccionada por defecto; devolver siempre arrays permite que el componente
- * no tenga que distinguir casos.
+ * The brief requires showing the selector even when there is a single option and
+ * leaving it selected by default; always returning arrays means the component
+ * does not have to distinguish cases.
  *
- * Una opción solo es elegible si cumple **las dos** condiciones:
+ * An option is only eligible if it meets **both** conditions:
  *
- *   - Tiene `code`, porque es lo que exige el `POST /api/cart`.
- *   - Tiene nombre, porque es lo que el usuario lee para decidir.
+ *   - It has a `code`, because that is what `POST /api/cart` requires.
+ *   - It has a name, because that is what the user reads to decide.
  *
- * Lo segundo no es teórico: en el catálogo real hay productos cuyo único
- * almacenamiento llega como `{ code: 2000, name: " " }`. Conservarlos pintaba
- * una pastilla con un guion —que nadie puede elegir a conciencia— y, al contar
- * como opción, dejaba el producto como comprable. Descartarlas hace que el
- * producto quede correctamente marcado como no disponible.
+ * The second is not theoretical: in the real catalogue there are products whose
+ * only storage arrives as `{ code: 2000, name: " " }`. Keeping them painted a
+ * pill with a dash — which nobody can meaningfully choose — and, by counting as
+ * an option, left the product marked as buyable. Discarding them makes the
+ * product correctly marked as unavailable.
  *
- * @param {object} product Detalle de producto del API.
+ * @param {object} product Product detail from the API.
  * @returns {{ colors: Array<{ code: number, name: string }>, storages: Array<{ code: number, name: string }> }}
  */
 export function getPurchaseOptions(product) {
