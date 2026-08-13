@@ -2,18 +2,17 @@ import { useId } from 'react';
 import styles from './OptionSelector.module.css';
 
 /**
- * Selector de una opción de compra (almacenamiento o color).
+ * Selector for a purchase option (storage or colour).
  *
- * Está construido sobre `<fieldset>` + `<input type="radio">` en lugar de
- * botones con ARIA: se obtiene gratis la semántica de grupo, la navegación con
- * flechas y el comportamiento en formularios que de otro modo habría que
- * reimplementar a mano.
+ * It is built on `<fieldset>` + `<input type="radio">` rather than buttons with
+ * ARIA: group semantics, arrow-key navigation and form behaviour all come for
+ * free, where otherwise they would have to be reimplemented by hand.
  *
  * @param {object} props
- * @param {string} props.legend Título del grupo.
- * @param {string} props.name Nombre del grupo de radios.
+ * @param {string} props.legend Group title.
+ * @param {string} props.name Name of the radio group.
  * @param {Array<{ code: number, name: string }>} props.options
- * @param {number | null} props.value Código seleccionado.
+ * @param {number | null} props.value Selected code.
  * @param {(code: number) => void} props.onChange
  */
 export function OptionSelector({ legend, name, options, value, onChange }) {

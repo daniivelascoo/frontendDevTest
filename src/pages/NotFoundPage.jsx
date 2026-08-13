@@ -3,10 +3,10 @@ import { StatusMessage } from '../components/ui/StatusMessage.jsx';
 import { useSetBreadcrumbs } from '../context/breadcrumbsContext.js';
 
 /**
- * Ruta no reconocida.
+ * Unrecognised route.
  *
- * Al ser una SPA con enrutado en cliente, cualquier URL desconocida llega al
- * router; conviene responder con algo mejor que una pantalla en blanco.
+ * Being an SPA with client-side routing, any unknown URL reaches the router; it
+ * is worth answering with something better than a blank screen.
  */
 export function NotFoundPage() {
   useSetBreadcrumbs([{ label: 'Inicio', to: '/' }, { label: 'Página no encontrada' }]);

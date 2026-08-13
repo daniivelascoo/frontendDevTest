@@ -1,37 +1,37 @@
 import { resolveStorage } from './storage.js';
 
 /**
- * Caché de cliente con expiración (TTL).
+ * Client-side cache with expiry (TTL).
  *
- * Cumple el requisito de persistencia de la prueba:
- *   - se guarda la respuesta cada vez que se solicita al API;
- *   - las entradas expiran a la hora y entonces se revalidan contra el API;
- *   - todo el almacenamiento vive en cliente (`localStorage`, con degradación
- *     a memoria si no está disponible).
+ * It fulfils the persistence requirement of the test:
+ *   - the response is stored every time the API is queried;
+ *   - entries expire after an hour and are then revalidated against the API;
+ *   - all storage lives on the client (`localStorage`, degrading to memory if
+ *     it is unavailable).
  *
- * Cada entrada se serializa como `{ v: <valor>, e: <timestamp de expiración> }`.
- * Guardar el instante de expiración —y no el de creación— permite que una
- * entrada escrita con un TTL concreto mantenga ese TTL aunque la
- * configuración global cambie después.
+ * Each entry is serialised as `{ v: <value>, e: <expiry timestamp> }`. Storing
+ * the expiry instant — rather than the creation instant — lets an entry written
+ * with a specific TTL keep that TTL even if the global configuration changes
+ * afterwards.
  */
 
-/** TTL exigido por la prueba: 1 hora. */
+/** TTL required by the test: 1 hour. */
 export const ONE_HOUR_MS = 60 * 60 * 1000;
 
 const DEFAULT_NAMESPACE = 'itx-cache';
 
 /**
  * @typedef {object} CacheEntry
- * @property {unknown} v Valor almacenado.
- * @property {number} e Timestamp (ms) en el que la entrada deja de ser válida.
+ * @property {unknown} v Stored value.
+ * @property {number} e Timestamp (ms) at which the entry stops being valid.
  */
 
 /**
  * @param {object} [options]
- * @param {string} [options.namespace] Prefijo de las claves en el storage.
- * @param {number} [options.ttlMs] Tiempo de vida por defecto, en ms.
- * @param {Storage} [options.storage] Storage a utilizar (inyectable en tests).
- * @param {() => number} [options.now] Reloj inyectable (inyectable en tests).
+ * @param {string} [options.namespace] Prefix for the keys in storage.
+ * @param {number} [options.ttlMs] Default time to live, in ms.
+ * @param {Storage} [options.storage] Storage to use (injectable in tests).
+ * @param {() => number} [options.now] Clock (injectable in tests).
  */
 export function createCache({
   namespace = DEFAULT_NAMESPACE,
@@ -45,8 +45,8 @@ export function createCache({
   const toStorageKey = (key) => `${prefix}${key}`;
 
   /**
-   * Lee y valida una entrada. Una entrada corrupta o expirada se elimina y se
-   * trata como ausente, de modo que la aplicación revalide contra el API.
+   * Reads and validates an entry. A corrupt or expired entry is removed and
+   * treated as absent, so the application revalidates against the API.
    *
    * @param {string} key
    * @returns {{ hit: boolean, value?: unknown, expiresAt?: number }}
@@ -87,8 +87,8 @@ export function createCache({
 
   /**
    * @param {string} key
-   * @returns {unknown | undefined} El valor cacheado, o `undefined` si no hay
-   *   entrada válida.
+   * @returns {unknown | undefined} The cached value, or `undefined` if there is
+   *   no valid entry.
    */
   function get(key) {
     return read(key).value;
@@ -96,7 +96,7 @@ export function createCache({
 
   /**
    * @param {string} key
-   * @returns {boolean} `true` si existe una entrada no expirada.
+   * @returns {boolean} `true` if a non-expired entry exists.
    */
   function has(key) {
     return read(key).hit;
@@ -105,8 +105,8 @@ export function createCache({
   /**
    * @param {string} key
    * @param {unknown} value
-   * @param {number} [entryTtlMs] TTL específico para esta entrada.
-   * @returns {boolean} `true` si se pudo persistir.
+   * @param {number} [entryTtlMs] TTL specific to this entry.
+   * @returns {boolean} `true` if it could be persisted.
    */
   function set(key, value, entryTtlMs = ttlMs) {
     /** @type {CacheEntry} */
@@ -116,9 +116,9 @@ export function createCache({
       store.setItem(toStorageKey(key), JSON.stringify(entry));
       return true;
     } catch {
-      // Cuota agotada: liberamos las entradas de este namespace y reintentamos
-      // una sola vez. Si vuelve a fallar, seguimos sin caché en lugar de
-      // romper la petición.
+      // Quota exhausted: free the entries in this namespace and retry once. If
+      // it fails again, carry on without a cache rather than breaking the
+      // request.
       clear();
       try {
         store.setItem(toStorageKey(key), JSON.stringify(entry));
@@ -134,11 +134,11 @@ export function createCache({
     try {
       store.removeItem(toStorageKey(key));
     } catch {
-      /* nada que hacer: la caché es best-effort */
+      /* nothing to do: the cache is best-effort */
     }
   }
 
-  /** Elimina todas las entradas de este namespace, sin tocar otras claves. */
+  /** Removes every entry in this namespace, leaving other keys untouched. */
   function clear() {
     try {
       const keys = [];
@@ -156,8 +156,8 @@ export function createCache({
 }
 
 /**
- * Caché compartida por toda la aplicación.
- * El TTL puede ajustarse por entorno; por defecto es el de la prueba, 1 hora.
+ * Cache shared by the whole application.
+ * The TTL can be tuned per environment; it defaults to the test's one hour.
  */
 const configuredTtl = Number(import.meta.env?.VITE_CACHE_TTL_MS);
 

@@ -1,23 +1,23 @@
 /**
- * Helpers de test que **no** dependen de React.
+ * Test helpers that do **not** depend on React.
  *
- * Están separados de `utils.jsx` a propósito: los tests de lógica pura
- * (`lib/cache.test.js`, `api/products.test.js`) solo necesitan un doble de
- * `fetch` y un `Storage` en memoria, y no tienen por qué arrastrar Testing
- * Library, el router ni los proveedores de la aplicación.
+ * They are deliberately separate from `utils.jsx`: pure-logic tests
+ * (`lib/cache.test.js`, `api/products.test.js`) only need a `fetch` double and
+ * an in-memory `Storage`, and have no reason to drag in Testing Library, the
+ * router or the application providers.
  *
- * Lo que necesite renderizar componentes vive en `utils.jsx`.
+ * Anything that needs to render components lives in `utils.jsx`.
  */
 
 /**
- * Sustituye `fetch` por un doble que responde según la URL solicitada.
+ * Replaces `fetch` with a double that responds based on the requested URL.
  *
- * Se hace mock del `fetch` global y no del módulo de servicios a propósito:
- * así los tests ejercitan el cliente HTTP y la caché reales, que es donde
- * están las reglas de negocio que interesa verificar.
+ * The global `fetch` is stubbed rather than the service module on purpose: that
+ * way tests exercise the real HTTP client and the real cache, which is where
+ * the business rules worth verifying live.
  *
- * Gana la **primera** ruta que coincida, así que hay que declarar las más
- * específicas antes (`/api/cart` antes que `/api/product`).
+ * The **first** matching route wins, so declare the more specific ones first
+ * (`/api/cart` before `/api/product`).
  *
  * @param {Array<{ match: string | RegExp, status?: number, body?: unknown, delayMs?: number }>} routes
  * @returns {import('vitest').Mock}
@@ -31,7 +31,7 @@ export function mockFetch(routes) {
     );
 
     if (!route) {
-      throw new Error(`No hay respuesta simulada para la URL: ${requestUrl}`);
+      throw new Error(`No stubbed response for URL: ${requestUrl}`);
     }
 
     if (route.delayMs) {
@@ -52,11 +52,11 @@ export function mockFetch(routes) {
 }
 
 /**
- * Doble de `IntersectionObserver`, que jsdom no implementa.
+ * Double for `IntersectionObserver`, which jsdom does not implement.
  *
- * Registra sus instancias para que un test pueda simular que el centinela del
- * scroll infinito ha entrado en pantalla, en lugar de conformarse con probar
- * solo el botón «Cargar más».
+ * It records its instances so a test can simulate the infinite-scroll sentinel
+ * entering the viewport, instead of settling for testing only the "load more"
+ * button.
  */
 export class MockIntersectionObserver {
   /** @type {MockIntersectionObserver[]} */
@@ -85,13 +85,13 @@ export class MockIntersectionObserver {
 }
 
 /**
- * Simula que los elementos vigilados han entrado en pantalla.
+ * Simulates the observed elements entering the viewport.
  *
  * @param {boolean} [isIntersecting]
  */
 export function triggerIntersection(isIntersecting = true) {
-  // Se copia la lista: el callback puede provocar un render que desconecte
-  // observadores y mute el array mientras se recorre.
+  // The list is copied: the callback can trigger a render that disconnects
+  // observers and mutates the array while it is being walked.
   for (const observer of [...MockIntersectionObserver.instances]) {
     const entries = [...observer.elements].map((target) => ({ target, isIntersecting }));
     if (entries.length > 0) observer.callback(entries, observer);
@@ -99,7 +99,7 @@ export function triggerIntersection(isIntersecting = true) {
 }
 
 /**
- * Storage en memoria aislado para un test concreto.
+ * Isolated in-memory storage for a single test.
  *
  * @returns {Storage}
  */

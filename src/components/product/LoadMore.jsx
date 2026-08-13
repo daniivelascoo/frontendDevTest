@@ -3,19 +3,18 @@ import { ProductGridSkeleton } from './ProductGridSkeleton.jsx';
 import styles from './LoadMore.module.css';
 
 /**
- * Pie del listado: centinela del scroll infinito, control manual y progreso.
+ * Footer of the list: infinite-scroll sentinel, manual control and progress.
  *
- * El centinela es un elemento vacío que el `IntersectionObserver` vigila; el
- * botón hace lo mismo pero de forma explícita. Tener los dos no es
- * redundante: el scroll infinito solo funciona para quien hace scroll, y sin
- * un control real que enfocar, quien navega con teclado se queda sin forma de
- * ver el resto del catálogo.
+ * The sentinel is an empty element the `IntersectionObserver` watches; the
+ * button does the same thing explicitly. Having both is not redundant:
+ * infinite scroll only works for people who scroll, and without a real control
+ * to focus, keyboard users have no way to see the rest of the catalogue.
  *
  * @param {object} props
  * @param {number} props.visibleCount
  * @param {number} props.totalCount
  * @param {boolean} props.hasMore
- * @param {boolean} props.isLoading Hay una tanda en camino.
+ * @param {boolean} props.isLoading A batch is on its way.
  * @param {() => void} props.onLoadMore
  * @param {import('react').RefObject<HTMLElement>} props.sentinelRef
  */
@@ -29,17 +28,17 @@ export function LoadMore({
 }) {
   return (
     <div className={styles.wrapper}>
-      {/* Tarjetas fantasma de la tanda que llega. Ocupan el sitio que van a
-          ocupar los productos, así que el crecimiento de la lista se anticipa
-          en vez de dar un salto. */}
+      {/* Ghost cards for the incoming batch. They hold the space the products
+          are about to occupy, so the list's growth is anticipated rather than
+          jumping. */}
       {isLoading && (
         <div className={styles.incoming}>
           <ProductGridSkeleton count={4} label="Cargando más productos" />
         </div>
       )}
 
-      {/* El progreso se anuncia al cargar cada tanda: quien no ve la pantalla
-          no percibiría de otro modo que han aparecido más productos. */}
+      {/* Progress is announced on every batch: someone who cannot see the
+          screen would otherwise not notice that more products appeared. */}
       <p className={styles.progress} role="status" aria-live="polite">
         Mostrando {visibleCount} de {totalCount} {totalCount === 1 ? 'producto' : 'productos'}
       </p>
@@ -48,9 +47,9 @@ export function LoadMore({
         <>
           <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
 
-          {/* El botón se mantiene montado durante la carga en lugar de
-              sustituirse por un spinner: si desapareciese, quien lo acabase de
-              pulsar con el teclado perdería el foco. */}
+          {/* The button stays mounted during the load instead of being
+              replaced by a spinner: if it disappeared, someone who had just
+              pressed it with the keyboard would lose focus. */}
           <Button variant="secondary" onClick={onLoadMore} loading={isLoading}>
             {isLoading ? 'Cargando…' : 'Cargar más productos'}
           </Button>

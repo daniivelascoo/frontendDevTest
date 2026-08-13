@@ -1,86 +1,113 @@
 ---
 name: testing-rtl
-description: Cómo escribir tests en este proyecto con Vitest y Testing Library — helpers disponibles, simulación del API, fixtures y qué merece la pena probar. Úsala al añadir o arreglar cualquier archivo .test.js/.test.jsx.
+description: How to write tests in this project with Vitest and Testing Library — available helpers, API stubbing, fixtures and what is worth testing. Use it when adding or fixing any .test.js/.test.jsx file.
 ---
 
 # Tests
 
-Vitest + Testing Library sobre jsdom. `globals: true`, así que `describe`, `it`,
-`expect` y `vi` están disponibles sin importarlos.
+Vitest + Testing Library on jsdom. `globals: true`, so `describe`, `it`, `expect`
+and `vi` are available without importing them.
 
-## Qué probar
+## What to test
 
-Prueba **comportamiento observable por el usuario**, no detalles de
-implementación. Un test que se rompe al renombrar un estado interno, sin que la
-aplicación haya cambiado de comportamiento, es un test mal planteado.
+Test **behaviour the user can observe**, not implementation details. A test that
+breaks when an internal state variable is renamed, without the application
+having changed behaviour, is a badly framed test.
 
-Prioridad en este proyecto:
+Priority in this project:
 
-1. Los requisitos del enunciado (ver la skill `spec-itx`). Cada uno debería tener
-   un test que se lea como el requisito.
-2. La caché y su expiración a la hora.
-3. El filtrado del buscador.
-4. Los estados de error y de lista vacía, que son los que se olvidan y los que el
-   evaluador va a probar a mano.
+1. The requirements from the brief (see the `spec-itx` skill). Each one should
+   have a test that reads like the requirement.
+2. The cache and its one-hour expiry.
+3. The search filtering.
+4. Error and empty-list states, the ones people forget and the ones the reviewer
+   will try by hand.
 
-No persigas el 100 % de cobertura. Un test por rama de un `formatSpecValue` no
-aporta nada; uno que compruebe que un producto sin precio no muestra «0 €», sí.
+Do not chase 100% coverage. One test per branch of `formatSpecValue` adds
+nothing; one checking that a product without a price does not show "0 €" does.
 
-## Helpers disponibles
+## Available helpers
 
-Están repartidos en dos archivos según si necesitan React o no. Importa del que
-corresponda: un test de lógica pura no debería cargar Testing Library.
+They are split across two files depending on whether they need React. Import
+from the right one: a pure-logic test should not load Testing Library.
 
-**`src/test/helpers.js`** — sin React:
+**`src/test/helpers.js`** — no React:
 
-- `mockFetch(routes)` — sustituye el `fetch` global. Cada ruta es
-  `{ match, status?, body?, delayMs? }`, donde `match` es un fragmento de URL o
-  una expresión regular. **Gana la primera coincidencia**, así que pon las rutas
-  más específicas primero (`/api/cart` antes que `/api/product`).
-- `createTestStorage()` — `Storage` en memoria, aislado por test.
+- `mockFetch(routes)` — replaces global `fetch`. Each route is
+  `{ match, status?, body?, delayMs? }`, where `match` is a URL fragment or a
+  regular expression. **First match wins**, so put the more specific routes
+  first (`/api/cart` before `/api/product`, and `/api/product/` with a trailing
+  slash to hit the detail endpoint rather than the list).
+- `createTestStorage()` — in-memory `Storage`, isolated per test.
+- `MockIntersectionObserver` + `triggerIntersection()` — jsdom implements no
+  `IntersectionObserver`, which the infinite scroll depends on.
 
-**`src/test/utils.jsx`** — con React:
+**`src/test/utils.jsx`** — with React:
 
-- `renderWithProviders(ui, { route, path, storage })` — monta con `MemoryRouter`,
-  `CartProvider` y `BreadcrumbsProvider`, y devuelve un `user` de
-  `userEvent` ya inicializado. Usa `path` cuando el componente lea `useParams`.
+- `renderWithProviders(ui, { route, path, storage })` — mounts with
+  `MemoryRouter`, `CartProvider` and `BreadcrumbsProvider`, and returns a
+  `userEvent` instance ready to use. Use `path` when the component reads
+  `useParams`, and `storage` to preload the cart counter.
+- `renderApp({ route })` — mounts the whole `<App>` on a given route. Needed for
+  anything living in the header (cart counter, breadcrumbs) and for the routing
+  table, since `renderWithProviders` mounts a bare view with no header. `<App>`
+  brings its own providers, so this helper only adds the router; the cart uses
+  jsdom's `localStorage`, which the global `afterEach` clears.
 
-Si añades un helper, colócalo en el archivo que le toque. Meter algo que importe
-React en `helpers.js` deshace la separación en silencio.
+If you add a helper, put it in the file it belongs to. Adding something that
+imports React to `helpers.js` silently undoes the split.
 
-`src/test/fixtures.js` contiene respuestas copiadas del API real, con sus erratas
-incluidas. No las «arregles»: un fixture idealizado hace pasar tests que fallarían
-contra el servidor de verdad.
+`src/test/fixtures.js` holds responses copied from the real API, typos included.
+Do not "fix" them: an idealised fixture makes tests pass that would fail against
+the real server.
 
-## Reglas de escritura
+## Writing rules
 
-- Simula `fetch`, no los módulos de `api/`. Así los tests ejercitan el cliente
-  HTTP y la caché reales, que es donde está la lógica que importa.
-- Llama a `invalidateProductCache()` en el `beforeEach` de cualquier test que
-  toque productos: la caché es un singleton de módulo y se filtraría entre tests.
-- Busca por rol y nombre accesible (`getByRole('radio', { name: '32 GB' })`).
-  Recurre a `data-testid` solo cuando no exista rol razonable.
-- Usa `findBy*` o `waitFor` para lo asíncrono; nunca esperas con temporizador.
-- Un `it` describe un comportamiento, en castellano y en tercera persona:
-  «preselecciona la primera opción de cada grupo».
+- Stub `fetch`, not the `api/` modules. That way tests exercise the real HTTP
+  client and the real cache, which is where the logic that matters lives.
+- Call `invalidateProductCache()` in the `beforeEach` of any test touching
+  products: the cache is a module singleton and would leak between tests.
+- Query by role and accessible name (`getByRole('radio', { name: '32 GB' })`).
+  Fall back to `data-testid` only when no reasonable role exists.
+- Use `findBy*` or `waitFor` for anything async; never wait on a timer.
+- An `it` describes one behaviour, in **English** and in the third person:
+  "preselects the first option of each group". Note that the assertions
+  themselves still match Spanish UI strings — those are the product.
 
-## Trampas conocidas
+## Known pitfalls
 
-- **El buscador lleva un debounce de 250 ms.** Tras `user.type` hay que esperar
-  con `waitFor` o `findBy*`; una aserción inmediata verá la lista sin filtrar.
-- **`isNotFound` e `isRetryable` son getters del prototipo de `ApiError`**, así
-  que `toMatchObject` no los ve. Captura el error y compruébalos directamente.
-- **StrictMode monta dos veces.** Si un test cuenta llamadas a `fetch`, ten
-  presente que `api/products.js` deduplica las peticiones en vuelo: dos montajes
-  simultáneos producen **una** petición, no dos.
-- `renderWithProviders` no incluye la cabecera: monta `<App />` si necesitas
-  probar las migas de pan o el contador de la cesta.
+- **The search box is debounced by 250 ms.** After `user.type` you must wait
+  with `waitFor` or `findBy*`; an immediate assertion sees the unfiltered list.
+- **`isNotFound` and `isRetryable` are getters on `ApiError`'s prototype**, so
+  `toMatchObject` does not see them. Capture the error and check them directly.
+- **StrictMode mounts twice.** If a test counts `fetch` calls, remember that
+  `api/products.js` de-duplicates in-flight requests: two simultaneous mounts
+  produce **one** request, not two.
+- **`Spinner` exposes no `aria-label`.** Its text sits in a visually hidden
+  `span`, so `getByLabelText` will not find it — query by text, or by
+  `role="status"`. The list skeleton _does_ have a label
+  (`getByLabelText('Cargando productos')`).
+- **`StatusMessage` renders its title as a `<p>`, not a heading.** Do not look
+  for `getByRole('heading')`; assert on its role instead — `alert` for the error
+  variant, `status` for the rest. That also disambiguates text that appears both
+  in the message and in the breadcrumbs.
+- **When navigating, a loading indicator may never mount.** The stubbed response
+  can resolve before it renders, and `waitForElementToBeRemoved` requires the
+  element to have existed. On navigation, wait positively for the destination
+  content (`findByRole`) instead. `waitForElementToBeRemoved` is fine on the
+  first mount of a view.
+- **Breadcrumbs are published from an effect.** Each page sets them with
+  `useSetBreadcrumbs`, so they resolve one render after the title is painted:
+  use `findByText` for the last crumb.
+- **The cart counter is rehydrated from storage on mount.** Preload it with the
+  `CART_STORAGE_KEY` exported from `context/CartProvider.jsx`, either through
+  `createTestStorage()` or `window.localStorage`.
 
-## Comandos
+## Commands
 
 ```bash
-npm test                 # una pasada
-npm run test:watch       # en observación durante el desarrollo
-npm run test:coverage    # informe de cobertura
-npx vitest run src/lib   # solo una carpeta
+npm test                 # single run
+npm run test:watch       # watch mode during development
+npm run test:coverage    # coverage report
+npx vitest run src/lib   # a single folder
 ```

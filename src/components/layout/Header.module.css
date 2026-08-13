@@ -5,7 +5,7 @@
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-line);
 
-  /* Ligera translucidez al hacer scroll, sin perder legibilidad. */
+  /* Slight translucency while scrolling, without losing legibility. */
   backdrop-filter: saturate(180%) blur(8px);
 }
 

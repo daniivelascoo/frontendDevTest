@@ -5,7 +5,12 @@ import { CartProvider, CART_STORAGE_KEY } from './CartProvider.jsx';
 import { useCart } from './cartContext.js';
 import { createTestStorage, mockFetch } from '../test/helpers.js';
 
-/** Componente de prueba que expone el estado de la cesta. */
+/**
+ * Probe component exposing the cart state.
+ *
+ * Its button label is in English, unlike the application's: this component is
+ * part of the test, not of the product.
+ */
 function CartProbe() {
   const { count, addItem } = useCart();
 
@@ -16,14 +21,14 @@ function CartProbe() {
         type="button"
         onClick={() => addItem({ id: 'abc', colorCode: 1000, storageCode: 2000 }).catch(() => {})}
       >
-        Añadir
+        Add
       </button>
     </div>
   );
 }
 
 describe('CartProvider', () => {
-  it('arranca a cero cuando no hay nada persistido', () => {
+  it('starts at zero when nothing is persisted', () => {
     render(
       <CartProvider storage={createTestStorage()}>
         <CartProbe />
@@ -33,7 +38,7 @@ describe('CartProvider', () => {
     expect(screen.getByTestId('count')).toHaveTextContent('0');
   });
 
-  it('recupera el contador persistido al montarse', () => {
+  it('recovers the persisted counter on mount', () => {
     const storage = createTestStorage();
     storage.setItem(CART_STORAGE_KEY, JSON.stringify(7));
 
@@ -46,7 +51,7 @@ describe('CartProvider', () => {
     expect(screen.getByTestId('count')).toHaveTextContent('7');
   });
 
-  it('adopta como contador el valor que devuelve el API', async () => {
+  it('adopts the count returned by the API', async () => {
     mockFetch([{ match: '/api/cart', body: { count: 4 } }]);
     const user = userEvent.setup();
 
@@ -56,12 +61,12 @@ describe('CartProvider', () => {
       </CartProvider>
     );
 
-    await user.click(screen.getByRole('button', { name: 'Añadir' }));
+    await user.click(screen.getByRole('button', { name: 'Add' }));
 
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('4'));
   });
 
-  it('persiste el contador para que sobreviva a una recarga', async () => {
+  it('persists the counter so it survives a reload', async () => {
     mockFetch([{ match: '/api/cart', body: { count: 4 } }]);
     const storage = createTestStorage();
     const user = userEvent.setup();
@@ -72,12 +77,12 @@ describe('CartProvider', () => {
       </CartProvider>
     );
 
-    await user.click(screen.getByRole('button', { name: 'Añadir' }));
+    await user.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('4'));
 
     unmount();
 
-    // Un montaje nuevo equivale a recargar la página.
+    // A fresh mount is equivalent to reloading the page.
     render(
       <CartProvider storage={storage}>
         <CartProbe />
@@ -87,7 +92,7 @@ describe('CartProvider', () => {
     expect(screen.getByTestId('count')).toHaveTextContent('4');
   });
 
-  it('mantiene el contador anterior si el API falla al añadir', async () => {
+  it('keeps the previous counter if the API fails while adding', async () => {
     mockFetch([{ match: '/api/cart', status: 500 }]);
     const storage = createTestStorage();
     storage.setItem(CART_STORAGE_KEY, JSON.stringify(2));
@@ -99,12 +104,12 @@ describe('CartProvider', () => {
       </CartProvider>
     );
 
-    await user.click(screen.getByRole('button', { name: 'Añadir' }));
+    await user.click(screen.getByRole('button', { name: 'Add' }));
 
     await waitFor(() => expect(screen.getByTestId('count')).toHaveTextContent('2'));
   });
 
-  it('ignora un valor persistido corrupto en lugar de romper el montaje', () => {
+  it('ignores a corrupt persisted value instead of breaking the mount', () => {
     const storage = createTestStorage();
     storage.setItem(CART_STORAGE_KEY, 'no-es-json');
 
@@ -117,11 +122,11 @@ describe('CartProvider', () => {
     expect(screen.getByTestId('count')).toHaveTextContent('0');
   });
 
-  it('lanza un error claro si se usa useCart fuera del provider', () => {
-    // React registra el error en consola además de propagarlo.
+  it('throws a clear error if useCart is used outside the provider', () => {
+    // React logs the error to the console as well as propagating it.
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    expect(() => render(<CartProbe />)).toThrow(/dentro de un <CartProvider>/);
+    expect(() => render(<CartProbe />)).toThrow(/inside a <CartProvider>/);
 
     consoleError.mockRestore();
   });

@@ -7,7 +7,7 @@ import { mockFetch, triggerIntersection } from '../test/helpers.js';
 import { saveListPosition } from '../lib/listPosition.js';
 import { renderWithProviders } from '../test/utils.jsx';
 
-/** Espera a que desaparezca el esqueleto de carga. */
+/** Waits for the loading skeleton to disappear. */
 async function waitForCatalogue() {
   await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando productos'));
 }
@@ -17,7 +17,7 @@ describe('ProductListPage', () => {
     invalidateProductCache();
   });
 
-  it('muestra el catálogo que devuelve el API', async () => {
+  it('shows the catalogue returned by the API', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     renderWithProviders(<ProductListPage />);
@@ -28,7 +28,7 @@ describe('ProductListPage', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(productListFixture.length);
   });
 
-  it('muestra imagen, marca, modelo y precio de cada producto', async () => {
+  it('shows image, brand, model and price for each product', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     renderWithProviders(<ProductListPage />);
@@ -41,7 +41,7 @@ describe('ProductListPage', () => {
     expect(within(card).getByText(/699/)).toBeInTheDocument();
   });
 
-  it('indica cuándo un producto no tiene precio', async () => {
+  it('indicates when a product has no price', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     renderWithProviders(<ProductListPage />);
@@ -52,7 +52,7 @@ describe('ProductListPage', () => {
     expect(within(card).getByText('Precio no disponible')).toBeInTheDocument();
   });
 
-  it('enlaza cada producto con su ficha de detalle', async () => {
+  it('links each product to its detail page', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     renderWithProviders(<ProductListPage />);
@@ -63,7 +63,7 @@ describe('ProductListPage', () => {
     expect(link).toHaveAttribute('href', '/product/sBnkNCTsVLTjXCYFtqB0f');
   });
 
-  it('filtra por marca a medida que el usuario escribe', async () => {
+  it('filters by brand as the user types', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     const { user } = renderWithProviders(<ProductListPage />);
@@ -77,7 +77,7 @@ describe('ProductListPage', () => {
     });
   });
 
-  it('filtra por modelo', async () => {
+  it('filters by model', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     const { user } = renderWithProviders(<ProductListPage />);
@@ -91,7 +91,7 @@ describe('ProductListPage', () => {
     });
   });
 
-  it('filtra sin volver a pedir los datos al API', async () => {
+  it('filters without requesting the data from the API again', async () => {
     const fetchMock = mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     const { user } = renderWithProviders(<ProductListPage />);
@@ -105,7 +105,7 @@ describe('ProductListPage', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('informa cuando la búsqueda no devuelve resultados', async () => {
+  it('reports when the search returns no results', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     const { user } = renderWithProviders(<ProductListPage />);
@@ -116,7 +116,7 @@ describe('ProductListPage', () => {
     expect(await screen.findByText(/Sin resultados para «nokia»/)).toBeInTheDocument();
   });
 
-  it('permite borrar la búsqueda y recuperar el catálogo completo', async () => {
+  it('allows clearing the search and recovering the whole catalogue', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     const { user } = renderWithProviders(<ProductListPage />);
@@ -132,7 +132,7 @@ describe('ProductListPage', () => {
     expect(await screen.findByRole('heading', { name: 'Iconia Talk S' })).toBeInTheDocument();
   });
 
-  it('conserva la búsqueda que llega en la URL', async () => {
+  it('keeps the search term arriving in the URL', async () => {
     mockFetch([{ match: '/api/product', body: productListFixture }]);
 
     renderWithProviders(<ProductListPage />, { route: '/?q=xiaomi' });
@@ -143,107 +143,107 @@ describe('ProductListPage', () => {
     expect(screen.queryByRole('heading', { name: 'Galaxy S9' })).not.toBeInTheDocument();
   });
 
-  describe('scroll infinito', () => {
-    /** Catálogo de 30 productos: dos tandas completas y media. */
-    const catalogoGrande = buildProductListFixture(30);
+  describe('infinite scroll', () => {
+    /** A catalogue of 30 products: two full batches and a half. */
+    const largeCatalogue = buildProductListFixture(30);
 
-    /** Cuenta las tarjetas de producto que hay pintadas. */
-    const tarjetas = () => screen.getAllByRole('heading', { level: 2 });
+    /** Counts the product cards currently painted. */
+    const cards = () => screen.getAllByRole('heading', { level: 2 });
 
-    it('muestra solo la primera tanda de doce productos', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('shows only the first batch of twelve products', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
       renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      expect(tarjetas()).toHaveLength(12);
+      expect(cards()).toHaveLength(12);
       expect(screen.getByText('Mostrando 12 de 30 productos')).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Modelo 13' })).not.toBeInTheDocument();
     });
 
-    /** Pide otra tanda y espera a que termine la pausa de carga. */
-    async function cargarMas(user) {
+    /** Requests another batch and waits for the loading pause to finish. */
+    async function loadMore(user) {
       await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
       await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
-        // Margen holgado sobre la pausa de carga, para que el test no dependa
-        // de su duración exacta.
+        // Generous margin over the loading pause, so the test does not depend
+        // on its exact duration.
         timeout: 4000,
       });
     }
 
-    it('amplía la lista al pulsar «Cargar más»', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('extends the list when "load more" is pressed', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
       const { user } = renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      await cargarMas(user);
+      await loadMore(user);
 
-      expect(tarjetas()).toHaveLength(24);
+      expect(cards()).toHaveLength(24);
       expect(screen.getByRole('heading', { name: 'Modelo 13' })).toBeInTheDocument();
     });
 
-    it('amplía la lista cuando el centinela entra en pantalla', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('extends the list when the sentinel enters the viewport', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
       renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      expect(tarjetas()).toHaveLength(12);
+      expect(cards()).toHaveLength(12);
 
       act(() => triggerIntersection());
 
-      await waitFor(() => expect(tarjetas()).toHaveLength(24), { timeout: 4000 });
+      await waitFor(() => expect(cards()).toHaveLength(24), { timeout: 4000 });
     });
 
-    describe('pausa de carga', () => {
-      it('avisa de que hay más productos en camino antes de mostrarlos', async () => {
-        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    describe('loading pause', () => {
+      it('warns that more products are on the way before showing them', async () => {
+        mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
         const { user } = renderWithProviders(<ProductListPage />);
         await waitForCatalogue();
 
         await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
 
-        // Durante la pausa: indicador visible y lista todavía sin ampliar.
+        // During the pause: indicator visible and list not extended yet.
         expect(screen.getByLabelText('Cargando más productos')).toBeInTheDocument();
-        expect(tarjetas()).toHaveLength(12);
+        expect(cards()).toHaveLength(12);
 
         await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
-          // Margen holgado sobre la pausa de carga, para que el test no dependa
-          // de su duración exacta.
+          // Generous margin over the loading pause, so the test does not depend
+          // on its exact duration.
           timeout: 4000,
         });
 
-        expect(tarjetas()).toHaveLength(24);
+        expect(cards()).toHaveLength(24);
       });
 
-      it('mantiene el botón montado durante la pausa, para no perder el foco', async () => {
-        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+      it('keeps the button mounted during the pause, so focus is not lost', async () => {
+        mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
         const { user } = renderWithProviders(<ProductListPage />);
         await waitForCatalogue();
 
         await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
 
-        const boton = screen.getByRole('button', { name: /Cargando/ });
-        expect(boton).toBeDisabled();
-        expect(boton).toHaveAttribute('aria-busy', 'true');
+        const button = screen.getByRole('button', { name: /Cargando/ });
+        expect(button).toBeDisabled();
+        expect(button).toHaveAttribute('aria-busy', 'true');
 
         await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
-          // Margen holgado sobre la pausa de carga, para que el test no dependa
-          // de su duración exacta.
+          // Generous margin over the loading pause, so the test does not depend
+          // on its exact duration.
           timeout: 4000,
         });
       });
 
-      it('no encadena varias tandas si el centinela se dispara repetidamente', async () => {
-        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+      it('does not chain several batches if the sentinel fires repeatedly', async () => {
+        mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
         renderWithProviders(<ProductListPage />);
         await waitForCatalogue();
 
-        // El observador puede dispararse varias veces durante la pausa.
+        // The observer can fire several times during the pause.
         act(() => {
           triggerIntersection();
           triggerIntersection();
@@ -251,49 +251,49 @@ describe('ProductListPage', () => {
         });
 
         await waitForElementToBeRemoved(() => screen.queryByLabelText('Cargando más productos'), {
-          // Margen holgado sobre la pausa de carga, para que el test no dependa
-          // de su duración exacta.
+          // Generous margin over the loading pause, so the test does not depend
+          // on its exact duration.
           timeout: 4000,
         });
 
-        // Una sola tanda, no tres.
-        expect(tarjetas()).toHaveLength(24);
+        // A single batch, not three.
+        expect(cards()).toHaveLength(24);
       });
 
-      it('descarta la tanda en curso si cambia la búsqueda', async () => {
-        mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+      it('discards the in-flight batch if the search changes', async () => {
+        mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
         const { user } = renderWithProviders(<ProductListPage />);
         await waitForCatalogue();
 
         await user.click(screen.getByRole('button', { name: 'Cargar más productos' }));
-        // Sin esperar a que termine, se cambia el criterio de búsqueda.
+        // Without waiting for it to finish, the search term is changed.
         await user.type(screen.getByRole('searchbox'), 'marca');
 
-        await waitFor(() => expect(tarjetas()).toHaveLength(12), { timeout: 4000 });
+        await waitFor(() => expect(cards()).toHaveLength(12), { timeout: 4000 });
 
-        // La tanda pendiente pertenecía a la lista anterior: no debe aplicarse.
+        // The pending batch belonged to the previous list: it must not apply.
         expect(screen.queryByLabelText('Cargando más productos')).not.toBeInTheDocument();
       });
     });
 
-    it('deja de ofrecer más cuando ya se ven todos', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('stops offering more once everything is visible', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
       const { user } = renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      await cargarMas(user);
-      await cargarMas(user);
+      await loadMore(user);
+      await loadMore(user);
 
-      expect(tarjetas()).toHaveLength(30);
+      expect(cards()).toHaveLength(30);
       expect(
         screen.queryByRole('button', { name: 'Cargar más productos' })
       ).not.toBeInTheDocument();
       expect(screen.getByText('Has llegado al final del catálogo.')).toBeInTheDocument();
     });
 
-    it('no ofrece cargar más si el catálogo cabe en una tanda', async () => {
+    it('does not offer to load more if the catalogue fits in one batch', async () => {
       mockFetch([{ match: '/api/product', body: productListFixture }]);
 
       renderWithProviders(<ProductListPage />);
@@ -305,48 +305,48 @@ describe('ProductListPage', () => {
       expect(screen.getByText('Mostrando 4 de 4 productos')).toBeInTheDocument();
     });
 
-    it('vuelve a la primera tanda al cambiar la búsqueda', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('goes back to the first batch when the search changes', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
       const { user } = renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      await cargarMas(user);
-      expect(tarjetas()).toHaveLength(24);
+      await loadMore(user);
+      expect(cards()).toHaveLength(24);
 
-      // Todos los productos comparten marca, así que siguen siendo 30.
+      // Every product shares the same brand, so there are still 30.
       await user.type(screen.getByRole('searchbox'), 'marca');
 
-      await waitFor(() => expect(tarjetas()).toHaveLength(12));
+      await waitFor(() => expect(cards()).toHaveLength(12));
     });
 
-    it('restaura la posición al volver desde la ficha de un producto', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('restores the position when returning from a product detail page', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
-      // Es lo que la página deja guardado antes de navegar al detalle.
+      // This is what the page leaves stored before navigating to the detail.
       saveListPosition('', 24);
 
       renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      expect(tarjetas()).toHaveLength(24);
+      expect(cards()).toHaveLength(24);
     });
 
-    it('ignora la posición guardada si la búsqueda es otra', async () => {
-      mockFetch([{ match: '/api/product', body: catalogoGrande }]);
+    it('ignores the stored position if the search term is a different one', async () => {
+      mockFetch([{ match: '/api/product', body: largeCatalogue }]);
 
-      // La posición pertenece a otra lista: restaurarla mostraría un número
-      // arbitrario de resultados de una búsqueda distinta.
+      // The position belongs to another list: restoring it would show an
+      // arbitrary number of results from a different search.
       saveListPosition('otra-cosa', 24);
 
       renderWithProviders(<ProductListPage />);
       await waitForCatalogue();
 
-      expect(tarjetas()).toHaveLength(12);
+      expect(cards()).toHaveLength(12);
     });
   });
 
-  it('muestra un error con opción de reintentar si falla la carga', async () => {
+  it('shows an error with a retry option if the load fails', async () => {
     mockFetch([{ match: '/api/product', status: 500 }]);
 
     renderWithProviders(<ProductListPage />);
@@ -357,13 +357,13 @@ describe('ProductListPage', () => {
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument();
   });
 
-  it('vuelve a cargar el catálogo al pulsar reintentar', async () => {
+  it('loads the catalogue again when retry is pressed', async () => {
     const fetchMock = mockFetch([{ match: '/api/product', status: 500 }]);
 
     const { user } = renderWithProviders(<ProductListPage />);
     await screen.findByRole('alert');
 
-    // A partir de aquí el API responde correctamente.
+    // From here on the API responds correctly.
     fetchMock.mockImplementation(async () => ({
       ok: true,
       status: 200,

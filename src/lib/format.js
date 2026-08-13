@@ -1,9 +1,9 @@
 /**
- * Utilidades de formato para los datos que devuelve el API.
+ * Formatting helpers for the data returned by the API.
  *
- * El API entrega los valores como cadenas heterogéneas (y en ocasiones
- * vacías, o como arrays). Estas funciones concentran esa normalización para
- * que los componentes se limiten a pintar.
+ * The API delivers values as heterogeneous strings (sometimes empty, sometimes
+ * arrays). These functions concentrate that normalisation so components only
+ * have to paint.
  */
 
 const priceFormatter = new Intl.NumberFormat('es-ES', {
@@ -14,23 +14,23 @@ const priceFormatter = new Intl.NumberFormat('es-ES', {
 });
 
 /**
- * Marcador de dato ausente.
+ * Placeholder for missing data.
  *
- * Se reserva para los datos **obligatorios**, que ocupan su fila siempre para
- * que las fichas de dos productos se puedan comparar línea a línea. Los datos
- * secundarios no usan este marcador: directamente no se muestran.
+ * Reserved for **mandatory** values, which always occupy their row so that two
+ * products' spec sheets can be compared line by line. Secondary values do not
+ * use this placeholder: they are simply not shown.
  */
 export const MISSING_VALUE = '-';
 
 /**
- * Indica si un producto tiene precio.
+ * Tells whether a product has a price.
  *
- * Algunos productos del catálogo llegan con `price: ""`, que significa "no
- * está a la venta" y no "cuesta 0 €". Es la regla que decide tanto qué se
- * pinta como si el producto se puede comprar, así que vive en un solo sitio:
- * `formatPrice` y la comprobación de disponibilidad la comparten.
+ * Some catalogue products arrive with `price: ""`, which means "not for sale"
+ * and not "costs 0 €". This is the rule deciding both what gets painted and
+ * whether the product can be bought, so it lives in a single place:
+ * `formatPrice` and the availability check share it.
  *
- * Un precio de 0 sí cuenta como precio válido: es gratis, no es inexistente.
+ * A price of 0 does count as a valid price: it is free, not missing.
  *
  * @param {string | number | null | undefined} price
  * @returns {boolean}
@@ -38,8 +38,8 @@ export const MISSING_VALUE = '-';
 export function hasPrice(price) {
   if (price === null || price === undefined) return false;
 
-  // Hay que recortar antes de convertir: `Number(" ")` es 0, no NaN, así que
-  // un precio de solo espacios se colaría como producto gratuito y comprable.
+  // Trim before converting: `Number(" ")` is 0, not NaN, so a whitespace-only
+  // price would slip through as a free, buyable product.
   const text = String(price).trim();
   if (text === '') return false;
 
@@ -47,14 +47,14 @@ export function hasPrice(price) {
 }
 
 /**
- * Formatea un precio como moneda europea.
+ * Formats a price as European currency.
  *
  * @param {string | number | null | undefined} price
  * @param {object} [options]
- * @param {string} [options.fallback] Qué devolver si no hay precio. Por defecto
- *   un texto explicativo, porque el precio suele mostrarse suelto (tarjeta,
- *   bloque de compra) y ahí un guion no diría nada. En la ficha técnica, donde
- *   la fila ya está etiquetada como "Precio", se pasa `MISSING_VALUE`.
+ * @param {string} [options.fallback] What to return when there is no price.
+ *   Defaults to an explanatory text, because the price is usually shown on its
+ *   own (card, purchase block) where a dash would say nothing. In the spec
+ *   sheet, where the row is already labelled "Precio", `MISSING_VALUE` is passed.
  * @returns {string}
  */
 export function formatPrice(price, { fallback = 'Precio no disponible' } = {}) {
@@ -64,13 +64,13 @@ export function formatPrice(price, { fallback = 'Precio no disponible' } = {}) {
 }
 
 /**
- * Normaliza cualquier valor de especificación a un texto presentable.
+ * Normalises any specification value into presentable text.
  *
- * El API mezcla cadenas y arrays (`primaryCamera` puede ser
- * `"13 MP"` o `["13 MP", "autofocus"]`).
+ * The API mixes strings and arrays (`primaryCamera` can be `"13 MP"` or
+ * `["13 MP", "autofocus"]`).
  *
  * @param {unknown} value
- * @returns {string | null} El texto, o `null` si no hay dato útil.
+ * @returns {string | null} The text, or `null` if there is no useful data.
  */
 export function formatSpecValue(value) {
   if (value === null || value === undefined) return null;
@@ -85,8 +85,8 @@ export function formatSpecValue(value) {
 }
 
 /**
- * Igual que `formatSpecValue`, pero devuelve el marcador de dato ausente en
- * lugar de `null`. Solo para los campos obligatorios, que siempre ocupan fila.
+ * Same as `formatSpecValue`, but returns the missing-data placeholder instead
+ * of `null`. Only for mandatory fields, which always occupy a row.
  *
  * @param {unknown} value
  * @returns {string}
@@ -96,7 +96,7 @@ export function formatSpecValueOrFallback(value) {
 }
 
 /**
- * Formatea el peso, que el API entrega como número de gramos sin unidad.
+ * Formats the weight, which the API delivers as a number of grams with no unit.
  *
  * @param {unknown} weight
  * @returns {string}
@@ -105,7 +105,7 @@ export function formatWeight(weight) {
   const text = formatSpecValue(weight);
   if (!text) return MISSING_VALUE;
 
-  // Si ya trae unidad, se respeta tal cual.
+  // If it already carries a unit, leave it as it is.
   if (/[a-z]/i.test(text)) return text;
 
   const grams = Number(text);
@@ -113,7 +113,7 @@ export function formatWeight(weight) {
 }
 
 /**
- * Nombre completo del producto, tal y como se usa en títulos y breadcrumbs.
+ * Full product name, as used in titles and breadcrumbs.
  *
  * @param {{ brand?: string, model?: string } | null | undefined} product
  * @returns {string}

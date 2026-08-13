@@ -1,14 +1,15 @@
 import { resolveStorage } from './storage.js';
 
 /**
- * Recuerda cuántos productos había desplegados en el listado.
+ * Remembers how many products were expanded in the list.
  *
- * Es la contrapartida obligada del scroll infinito: sin esto, entrar en la
- * ficha de un producto y volver atrás devolvería al usuario a la primera tanda,
- * obligándole a repetir todo el scroll. Es la queja clásica de este patrón.
+ * It is the obligatory counterpart to infinite scroll: without it, entering a
+ * product's detail page and going back would return the user to the first
+ * batch, forcing them to redo all the scrolling. That is the classic complaint
+ * about this pattern.
  *
- * Se usa `sessionStorage` y no `localStorage` a propósito: la posición en un
- * listado interesa durante la visita, no una semana después.
+ * `sessionStorage` is used rather than `localStorage` on purpose: a position in
+ * a list matters during the visit, not a week later.
  */
 
 const STORAGE_KEY = 'itx-list-position';
@@ -19,24 +20,24 @@ function storage() {
 }
 
 /**
- * Guarda la posición asociada a un criterio de búsqueda.
+ * Stores the position associated with a search term.
  *
- * @param {string} query Criterio con el que se obtuvo esa lista.
- * @param {number} count Elementos visibles.
+ * @param {string} query Term the list was obtained with.
+ * @param {number} count Visible items.
  */
 export function saveListPosition(query, count) {
   try {
     storage().setItem(STORAGE_KEY, JSON.stringify({ query, count }));
   } catch {
-    /* la posición es una comodidad, no un requisito */
+    /* the position is a convenience, not a requirement */
   }
 }
 
 /**
- * Recupera la posición, pero solo si corresponde al mismo criterio.
+ * Retrieves the position, but only if it belongs to the same term.
  *
- * Si el usuario vuelve con otra búsqueda, la posición anterior es de otra
- * lista y restaurarla mostraría un número arbitrario de resultados.
+ * If the user comes back with a different search, the previous position belongs
+ * to another list and restoring it would show an arbitrary number of results.
  *
  * @param {string} query
  * @returns {number | null}
@@ -56,7 +57,7 @@ export function readListPosition(query) {
   }
 }
 
-/** Olvida la posición guardada. */
+/** Forgets the stored position. */
 export function clearListPosition() {
   try {
     storage().removeItem(STORAGE_KEY);

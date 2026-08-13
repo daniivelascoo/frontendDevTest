@@ -1,24 +1,24 @@
 /**
- * Filtrado del catálogo.
+ * Catalogue filtering.
  *
- * La prueba pide comparar el criterio de búsqueda con la **marca** y el
- * **modelo**. Sobre ese mínimo, la implementación añade dos cosas que el
- * usuario espera de cualquier buscador:
+ * The brief asks for the search term to be compared against **brand** and
+ * **model**. On top of that minimum, the implementation adds two things users
+ * expect from any search box:
  *
- *   - Insensibilidad a mayúsculas y a acentos: "Xiaomi Mí" encuentra "Mi".
- *   - Coincidencia por palabras sueltas y en cualquier orden: "s9 samsung"
- *     encuentra "Samsung Galaxy S9".
+ *   - Case and accent insensitivity: "Xiaomi Mí" finds "Mi".
+ *   - Matching on individual words in any order: "s9 samsung" finds
+ *     "Samsung Galaxy S9".
  */
 
 /**
- * Marcas diacríticas combinables que `normalize('NFD')` separa de su letra
- * base (U+0300–U+036F). Se define con escapes Unicode y no con los caracteres
- * literales, que son invisibles en el editor y fáciles de romper.
+ * Combining diacritical marks that `normalize('NFD')` separates from their base
+ * letter (U+0300–U+036F). Defined with Unicode escapes rather than the literal
+ * characters, which are invisible in an editor and easy to break.
  */
 const COMBINING_MARKS = new RegExp('[\\u0300-\\u036f]', 'g');
 
 /**
- * Pasa un texto a minúsculas y le retira los diacríticos.
+ * Lowercases a text and strips its diacritics.
  *
  * @param {unknown} value
  * @returns {string}
@@ -30,7 +30,7 @@ export function normalizeText(value) {
 }
 
 /**
- * Divide la consulta del usuario en términos independientes.
+ * Splits the user's query into independent terms.
  *
  * @param {string} query
  * @returns {string[]}
@@ -40,10 +40,10 @@ export function tokenizeQuery(query) {
 }
 
 /**
- * Comprueba si un producto satisface la consulta.
+ * Checks whether a product satisfies the query.
  *
  * @param {{ brand?: string, model?: string }} product
- * @param {string[]} tokens Consulta ya tokenizada y normalizada.
+ * @param {string[]} tokens Query already tokenised and normalised.
  * @returns {boolean}
  */
 export function matchesTokens(product, tokens) {
@@ -54,12 +54,12 @@ export function matchesTokens(product, tokens) {
 }
 
 /**
- * Filtra el catálogo por marca y modelo.
+ * Filters the catalogue by brand and model.
  *
  * @param {Array<{ brand?: string, model?: string }>} products
  * @param {string} query
- * @returns {Array<{ brand?: string, model?: string }>} El mismo array cuando la
- *   consulta está vacía, para evitar recrear referencias sin necesidad.
+ * @returns {Array<{ brand?: string, model?: string }>} The same array when the
+ *   query is empty, to avoid recreating references for nothing.
  */
 export function filterProducts(products, query) {
   if (!Array.isArray(products)) return [];

@@ -2,26 +2,26 @@ import { hasPrice } from './format.js';
 import { getPurchaseOptions } from './productSpecs.js';
 
 /**
- * Decide si un producto se puede añadir a la cesta, y si no, por qué.
+ * Decides whether a product can be added to the cart, and if not, why.
  *
- * El catálogo real contiene productos incompletos. Añadir uno sin precio o sin
- * opciones no es un caso límite teórico: el `POST /api/cart` exige un
- * `colorCode` y un `storageCode`, así que sin ellos la petición no se puede
- * ni construir. Y un producto sin precio no se puede vender aunque el API
- * aceptase la petición.
+ * The real catalogue contains incomplete products. Adding one without a price
+ * or without options is not a theoretical edge case: `POST /api/cart` requires
+ * a `colorCode` and a `storageCode`, so without them the request cannot even be
+ * built. And a product without a price cannot be sold even if the API accepted
+ * the request.
  *
- * La lógica vive aquí y no en el componente para poder probar las ocho
- * combinaciones sin montar React.
+ * The logic lives here rather than in the component so the eight combinations
+ * can be tested without mounting React.
  */
 
-/** Motivos por los que un producto puede no estar disponible. */
+/** Reasons a product may be unavailable. */
 export const UNAVAILABLE_REASON = {
   PRICE: 'price',
   STORAGE: 'storage',
   COLOR: 'color',
 };
 
-/** Cómo se nombra cada motivo dentro de la frase que ve el usuario. */
+/** How each reason is named inside the sentence the user sees. */
 const REASON_LABELS = {
   [UNAVAILABLE_REASON.PRICE]: 'precio',
   [UNAVAILABLE_REASON.STORAGE]: 'opciones de almacenamiento',
@@ -29,9 +29,8 @@ const REASON_LABELS = {
 };
 
 /**
- * Enumera en castellano con «ni», que es la conjunción que corresponde en una
- * frase negativa: "no tiene precio, opciones de almacenamiento ni opciones de
- * color".
+ * Joins the labels with "ni", the conjunction Spanish requires in a negative
+ * sentence: "no tiene precio, opciones de almacenamiento ni opciones de color".
  *
  * @param {string[]} labels
  * @returns {string}
@@ -45,13 +44,13 @@ function joinNegative(labels) {
 
 /**
  * @typedef {object} PurchaseAvailability
- * @property {boolean} isAvailable Si el producto se puede añadir a la cesta.
- * @property {string[]} reasons Motivos de la indisponibilidad (`UNAVAILABLE_REASON`).
- * @property {string | null} message Explicación para el usuario, o `null` si está disponible.
+ * @property {boolean} isAvailable Whether the product can be added to the cart.
+ * @property {string[]} reasons Reasons for unavailability (`UNAVAILABLE_REASON`).
+ * @property {string | null} message Explanation for the user, or `null` when available.
  */
 
 /**
- * @param {object | null | undefined} product Detalle de producto del API.
+ * @param {object | null | undefined} product Product detail from the API.
  * @returns {PurchaseAvailability}
  */
 export function getPurchaseAvailability(product) {
@@ -70,9 +69,9 @@ export function getPurchaseAvailability(product) {
     return { isAvailable: true, reasons: [], message: null };
   }
 
-  // Se nombran todos los motivos, no solo el primero: si al usuario le dices
-  // que falta el precio y luego, resuelto eso, que faltan los colores, la
-  // explicación parece que va cambiando de excusa.
+  // Every reason is named, not just the first: telling the user the price is
+  // missing and then, once that is solved, that the colours are missing makes
+  // the explanation look like it keeps changing its excuse.
   const labels = reasons.map((reason) => REASON_LABELS[reason]);
 
   return {

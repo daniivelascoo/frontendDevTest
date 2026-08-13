@@ -3,8 +3,8 @@ import { Header } from './Header.jsx';
 import styles from './Layout.module.css';
 
 /**
- * Estructura común a todas las vistas: cabecera fija arriba y el contenido de
- * la ruta activa debajo.
+ * Structure shared by every view: the header pinned at the top and the content
+ * of the active route below it.
  */
 export function Layout() {
   return (

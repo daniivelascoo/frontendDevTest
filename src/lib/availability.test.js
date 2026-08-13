@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { getPurchaseAvailability, UNAVAILABLE_REASON } from './availability.js';
 
 /**
- * Construye un producto con las tres condiciones de compra bajo control.
+ * Builds a product with the three purchase conditions under control.
  *
- * El precio no se resuelve con un parámetro por defecto a propósito: eso
- * confundiría «no lo he indicado» con «lo he indicado como undefined», que es
- * justo uno de los casos que hay que probar.
+ * The price is deliberately not resolved with a default parameter: that would
+ * conflate "I did not specify it" with "I specified it as undefined", which is
+ * precisely one of the cases that needs testing.
  *
  * @param {{ price?: unknown, storages?: unknown[], colors?: unknown[] }} [overrides]
  */
@@ -20,7 +20,7 @@ function buildProduct(overrides = {}) {
 }
 
 describe('getPurchaseAvailability', () => {
-  it('permite la compra cuando hay precio, almacenamiento y color', () => {
+  it('allows the purchase when there is a price, storage and colour', () => {
     const result = getPurchaseAvailability(buildProduct());
 
     expect(result.isAvailable).toBe(true);
@@ -28,13 +28,13 @@ describe('getPurchaseAvailability', () => {
     expect(result.message).toBeNull();
   });
 
-  it('considera válido un precio de cero: es gratis, no inexistente', () => {
+  it('treats a price of zero as valid: it is free, not missing', () => {
     expect(getPurchaseAvailability(buildProduct({ price: '0' })).isAvailable).toBe(true);
     expect(getPurchaseAvailability(buildProduct({ price: 0 })).isAvailable).toBe(true);
   });
 
-  describe('un solo motivo', () => {
-    it('bloquea la compra si no hay precio', () => {
+  describe('a single reason', () => {
+    it('blocks the purchase when there is no price', () => {
       const result = getPurchaseAvailability(buildProduct({ price: '' }));
 
       expect(result.isAvailable).toBe(false);
@@ -44,7 +44,7 @@ describe('getPurchaseAvailability', () => {
       );
     });
 
-    it('bloquea la compra si no hay almacenamiento', () => {
+    it('blocks the purchase when there is no storage', () => {
       const result = getPurchaseAvailability(buildProduct({ storages: [] }));
 
       expect(result.isAvailable).toBe(false);
@@ -52,7 +52,7 @@ describe('getPurchaseAvailability', () => {
       expect(result.message).toContain('no tiene opciones de almacenamiento.');
     });
 
-    it('bloquea la compra si no hay color', () => {
+    it('blocks the purchase when there is no colour', () => {
       const result = getPurchaseAvailability(buildProduct({ colors: [] }));
 
       expect(result.isAvailable).toBe(false);
@@ -61,8 +61,8 @@ describe('getPurchaseAvailability', () => {
     });
   });
 
-  describe('varios motivos a la vez', () => {
-    it('los enumera todos, en lugar de quedarse en el primero', () => {
+  describe('several reasons at once', () => {
+    it('lists them all, instead of stopping at the first', () => {
       const result = getPurchaseAvailability(buildProduct({ price: '', colors: [] }));
 
       expect(result.reasons).toEqual([UNAVAILABLE_REASON.PRICE, UNAVAILABLE_REASON.COLOR]);
@@ -71,7 +71,7 @@ describe('getPurchaseAvailability', () => {
       );
     });
 
-    it('enumera los tres con la puntuación correcta en castellano', () => {
+    it('lists all three with the correct Spanish punctuation', () => {
       const result = getPurchaseAvailability(buildProduct({ price: '', storages: [], colors: [] }));
 
       expect(result.message).toBe(
@@ -80,14 +80,14 @@ describe('getPurchaseAvailability', () => {
     });
   });
 
-  describe('formas en que el API omite los datos', () => {
-    it('trata un precio no numérico como ausente', () => {
+  describe('ways in which the API omits data', () => {
+    it('treats a non-numeric price as missing', () => {
       expect(getPurchaseAvailability(buildProduct({ price: 'consultar' })).isAvailable).toBe(false);
     });
 
-    it('no da por comprable un producto cuyo precio son solo espacios', () => {
-      // Mismo patrón que las opciones sin nombre: `Number(" ")` es 0, así que
-      // sin recortar el producto pasaría por gratuito y comprable.
+    it('does not consider buyable a product whose price is only whitespace', () => {
+      // Same pattern as options without a name: `Number(" ")` is 0, so without
+      // trimming the product would pass as free and buyable.
       const result = getPurchaseAvailability(buildProduct({ price: ' ' }));
 
       expect(result.isAvailable).toBe(false);
@@ -97,18 +97,18 @@ describe('getPurchaseAvailability', () => {
     it.each([
       ['null', null],
       ['undefined', undefined],
-      ['cadena vacía', ''],
-    ])('trata un precio %s como ausente', (_label, price) => {
+      ['an empty string', ''],
+    ])('treats a price of %s as missing', (_label, price) => {
       expect(getPurchaseAvailability(buildProduct({ price })).isAvailable).toBe(false);
     });
 
-    it('trata unas opciones ausentes como falta de almacenamiento y color', () => {
+    it('treats missing options as a lack of storage and colour', () => {
       const result = getPurchaseAvailability({ id: 'abc', price: '699' });
 
       expect(result.reasons).toEqual([UNAVAILABLE_REASON.STORAGE, UNAVAILABLE_REASON.COLOR]);
     });
 
-    it('descarta las opciones sin código, que no se podrían enviar al API', () => {
+    it('discards options without a code, which could not be sent to the API', () => {
       const result = getPurchaseAvailability(
         buildProduct({ colors: [{ name: 'Negro sin código' }] })
       );
@@ -117,10 +117,10 @@ describe('getPurchaseAvailability', () => {
       expect(result.reasons).toEqual([UNAVAILABLE_REASON.COLOR]);
     });
 
-    it('no da por comprable un producto cuya única opción no tiene nombre', () => {
-      // Caso real del catálogo: Acer DX650 y Acer M900 devuelven un
-      // almacenamiento `{ code: 2000, name: " " }`. Tener código no basta:
-      // sin nombre el usuario no sabría qué está eligiendo.
+    it('does not consider buyable a product whose only option has no name', () => {
+      // Real catalogue case: Acer DX650 and Acer M900 return a storage option
+      // of `{ code: 2000, name: " " }`. Having a code is not enough: without a
+      // name the user would not know what they are choosing.
       const result = getPurchaseAvailability(
         buildProduct({ storages: [{ code: 2000, name: ' ' }] })
       );
@@ -131,12 +131,12 @@ describe('getPurchaseAvailability', () => {
     });
   });
 
-  it('no falla mientras el producto aún no ha llegado', () => {
+  it('does not break while the product has not arrived yet', () => {
     const result = getPurchaseAvailability(null);
 
     expect(result.isAvailable).toBe(false);
-    // Sin producto no hay nada que explicar todavía: el mensaje solo aparece
-    // cuando se sabe qué le falta.
+    // With no product there is nothing to explain yet: the message only appears
+    // once we know what it is missing.
     expect(result.message).toBeNull();
   });
 });

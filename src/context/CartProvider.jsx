@@ -4,16 +4,16 @@ import { resolveStorage } from '../lib/storage.js';
 import { CartContext } from './cartContext.js';
 
 /**
- * Clave de persistencia del contador de la cesta.
+ * Persistence key for the cart counter.
  *
- * Vive fuera del namespace de la caché de datos (`itx-cache:`) a propósito: la
- * caché caduca a la hora y se vacía al reintentar, mientras que la cesta del
- * usuario debe sobrevivir a ambas cosas.
+ * It deliberately lives outside the data cache namespace (`itx-cache:`): the
+ * cache expires after an hour and is emptied on retry, whereas the user's cart
+ * must survive both.
  */
 export const CART_STORAGE_KEY = 'itx-cart-count';
 
 /**
- * Lee el contador persistido.
+ * Reads the persisted counter.
  *
  * @param {Storage} storage
  * @returns {number}
@@ -31,15 +31,15 @@ function readPersistedCount(storage) {
 }
 
 /**
- * Provee el estado de la cesta a toda la aplicación.
+ * Provides the cart state to the whole application.
  *
- * El enunciado exige que el número de artículos se muestre en la cabecera en
- * cualquier vista y que el dato persista, de modo que la fuente de verdad es
- * la respuesta del `POST /api/cart` y el espejo local es `localStorage`.
+ * The brief requires the item count to be shown in the header on every view and
+ * the value to persist, so the source of truth is the `POST /api/cart` response
+ * and `localStorage` is the local mirror.
  *
  * @param {object} props
  * @param {import('react').ReactNode} props.children
- * @param {Storage} [props.storage] Inyectable en tests.
+ * @param {Storage} [props.storage] Injectable in tests.
  */
 export function CartProvider({ children, storage }) {
   const resolvedStorage = useMemo(() => resolveStorage(storage), [storage]);
@@ -48,16 +48,16 @@ export function CartProvider({ children, storage }) {
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
 
-  // Espeja el contador en el storage en cuanto cambia.
+  // Mirrors the counter into storage as soon as it changes.
   useEffect(() => {
     try {
       resolvedStorage.setItem(CART_STORAGE_KEY, JSON.stringify(count));
     } catch {
-      /* la cesta sigue siendo usable en memoria durante esta sesión */
+      /* the cart stays usable in memory for this session */
     }
   }, [count, resolvedStorage]);
 
-  // Mantiene el contador sincronizado entre pestañas abiertas.
+  // Keeps the counter in sync across open tabs.
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
@@ -71,8 +71,8 @@ export function CartProvider({ children, storage }) {
   }, [resolvedStorage]);
 
   /**
-   * Añade un producto a la cesta y adopta como contador el valor que devuelve
-   * el API, que es la única fuente autorizada.
+   * Adds a product to the cart and adopts the count returned by the API, which
+   * is the only authoritative source.
    */
   const addItem = useCallback(async (selection) => {
     setStatus('adding');

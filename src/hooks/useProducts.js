@@ -5,13 +5,13 @@ import { useAsyncResource } from './useAsyncResource.js';
 import { useDebouncedValue } from './useDebouncedValue.js';
 
 /**
- * Catálogo de productos, ya filtrado por el criterio de búsqueda.
+ * Product catalogue, already filtered by the search term.
  *
- * El filtrado ocurre en cliente sobre la lista completa que devuelve el API:
- * son 100 productos y un único endpoint sin parámetros de búsqueda, así que
- * filtrar en memoria es instantáneo y no genera tráfico adicional.
+ * Filtering happens on the client over the full list returned by the API: there
+ * are 100 products and a single endpoint with no search parameters, so
+ * filtering in memory is instant and generates no extra traffic.
  *
- * @param {string} [query] Criterio de búsqueda del usuario.
+ * @param {string} [query] The user's search term.
  * @returns {{
  *   products: object[],
  *   allProducts: object[],
@@ -42,8 +42,8 @@ export function useProducts(query = '') {
     status,
     error,
     isLoading,
-    // El usuario ya ha escrito pero la lista todavía refleja la consulta
-    // anterior: útil para atenuar el grid mientras se estabiliza.
+    // The user has already typed but the list still reflects the previous
+    // query: useful to dim the grid while it settles.
     isFiltering: query.trim() !== debouncedQuery.trim(),
     reload,
   };

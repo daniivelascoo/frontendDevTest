@@ -6,8 +6,8 @@
   padding-top: var(--space-6);
 }
 
-/* Las tarjetas fantasma continúan la rejilla, así que ocupan todo el ancho
-   aunque el resto del pie esté centrado. */
+/* The ghost cards continue the grid, so they take the full width even though
+   the rest of the footer is centred. */
 .incoming {
   width: 100%;
   margin-top: calc(-1 * var(--space-2));
@@ -20,11 +20,11 @@
 }
 
 /**
- * Centinela del observador.
+ * Observer sentinel.
  *
- * No ocupa alto propio y se coloca por encima del botón con un margen
- * negativo, de modo que el observador dispare cuando el usuario se acerca al
- * final del grid y no cuando ya ha chocado con él.
+ * It takes no height of its own and sits above the button with a negative
+ * margin, so the observer fires as the user approaches the end of the grid and
+ * not once they have already hit it.
  */
 .sentinel {
   width: 100%;

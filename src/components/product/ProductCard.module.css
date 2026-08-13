@@ -41,7 +41,7 @@
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
 
-  /* Dos líneas como máximo: mantiene todas las tarjetas de la fila alineadas. */
+  /* Two lines at most: keeps every card in the row aligned. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

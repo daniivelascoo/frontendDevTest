@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { BreadcrumbsContext } from './breadcrumbsContext.js';
 
 /**
- * Almacena el rastro de migas que publica la página activa.
+ * Stores the breadcrumb trail published by the active page.
  *
  * @param {object} props
  * @param {import('react').ReactNode} props.children

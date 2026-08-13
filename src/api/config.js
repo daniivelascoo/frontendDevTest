@@ -1,23 +1,23 @@
 /**
- * Configuración del cliente de API.
+ * API client configuration.
  *
- * Los valores se leen de variables de entorno de Vite pero tienen valores por
- * defecto razonables, de modo que `npm start` funcione sin crear un `.env`.
+ * The values are read from Vite environment variables but have sensible
+ * defaults, so that `npm start` works without creating a `.env`.
  */
 
 const env = import.meta.env ?? {};
 
-/** Dominio base del API, sin barra final. */
+/** Base domain of the API, without a trailing slash. */
 export const API_BASE_URL = (env.VITE_API_BASE_URL || 'https://itx-frontend-test.onrender.com')
   .toString()
   .replace(/\/+$/, '');
 
 /**
- * Timeout por petición.
+ * Per-request timeout.
  *
- * El API de la prueba está desplegado en un plan gratuito de Render que
- * suspende la instancia por inactividad: el primer arranque en frío puede
- * tardar decenas de segundos, así que el margen es deliberadamente amplio.
+ * The test API is deployed on a free Render plan that suspends the instance
+ * when idle: the first cold start can take tens of seconds, so the margin is
+ * deliberately generous.
  */
 export const REQUEST_TIMEOUT_MS = 45_000;
 

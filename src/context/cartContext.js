@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 
 /**
  * @typedef {object} CartContextValue
- * @property {number} count Artículos en la cesta.
+ * @property {number} count Items in the cart.
  * @property {(selection: { id: string, colorCode: number, storageCode: number }) => Promise<number>} addItem
  * @property {() => void} reset
  * @property {'idle' | 'adding' | 'error'} status
@@ -13,10 +13,10 @@ import { createContext, useContext } from 'react';
 export const CartContext = createContext(null);
 
 /**
- * Acceso a la cesta.
+ * Access to the cart.
  *
- * Falla de forma explícita fuera del provider: un contador silenciosamente a
- * cero sería mucho más difícil de diagnosticar que un error en el montaje.
+ * It fails loudly outside the provider: a counter silently stuck at zero would
+ * be far harder to diagnose than an error at mount time.
  *
  * @returns {CartContextValue}
  */
@@ -24,7 +24,7 @@ export function useCart() {
   const context = useContext(CartContext);
 
   if (context === null) {
-    throw new Error('useCart debe usarse dentro de un <CartProvider>.');
+    throw new Error('useCart must be used inside a <CartProvider>.');
   }
 
   return context;

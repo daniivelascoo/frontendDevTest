@@ -5,24 +5,24 @@ import { productDetailFixture, productListFixture } from '../test/fixtures.js';
 import { mockFetch } from '../test/helpers.js';
 
 /**
- * Estos tests ejercitan el servicio real contra un `fetch` simulado, de modo
- * que se verifica la integración entre cliente HTTP, caché y deduplicación —
- * que es donde vive el requisito de cacheo del enunciado.
+ * These tests exercise the real service against a stubbed `fetch`, so they
+ * verify the integration between HTTP client, cache and de-duplication — which
+ * is where the brief's caching requirement lives.
  */
-describe('servicio de productos', () => {
+describe('products service', () => {
   beforeEach(() => {
-    // La caché y el registro de peticiones en vuelo son singletons de módulo.
+    // The cache and the in-flight registry are module singletons.
     invalidateProductCache();
   });
 
   describe('getProducts', () => {
-    it('devuelve el catálogo del API', async () => {
+    it('returns the catalogue from the API', async () => {
       mockFetch([{ match: '/api/product', body: productListFixture }]);
 
       await expect(getProducts()).resolves.toEqual(productListFixture);
     });
 
-    it('sirve la segunda llamada desde la caché, sin volver a la red', async () => {
+    it('serves the second call from the cache, without hitting the network', async () => {
       const fetchMock = mockFetch([{ match: '/api/product', body: productListFixture }]);
 
       await getProducts();
@@ -31,7 +31,7 @@ describe('servicio de productos', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('vuelve al API cuando se fuerza la revalidación', async () => {
+    it('goes back to the API when revalidation is forced', async () => {
       const fetchMock = mockFetch([{ match: '/api/product', body: productListFixture }]);
 
       await getProducts();
@@ -40,29 +40,29 @@ describe('servicio de productos', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
-    it('agrupa en una sola petición las llamadas simultáneas', async () => {
+    it('collapses simultaneous calls into a single request', async () => {
       const fetchMock = mockFetch([
         { match: '/api/product', body: productListFixture, delayMs: 10 },
       ]);
 
-      // Es el escenario del doble montaje de StrictMode.
+      // This is the StrictMode double-mount scenario.
       const [first, second] = await Promise.all([getProducts(), getProducts()]);
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(first).toEqual(second);
     });
 
-    it('no cachea la respuesta si la petición falla', async () => {
+    it('does not cache the response when the request fails', async () => {
       const fetchMock = mockFetch([{ match: '/api/product', status: 500 }]);
 
       await expect(getProducts()).rejects.toBeInstanceOf(ApiError);
 
-      // La siguiente llamada debe reintentar, no servir un error cacheado.
+      // The next call must retry, not serve a cached error.
       await expect(getProducts()).rejects.toBeInstanceOf(ApiError);
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
-    it('devuelve una lista vacía si el API no responde con un array', async () => {
+    it('returns an empty list if the API does not respond with an array', async () => {
       mockFetch([{ match: '/api/product', body: { error: 'formato inesperado' } }]);
 
       await expect(getProducts()).resolves.toEqual([]);
@@ -70,14 +70,14 @@ describe('servicio de productos', () => {
   });
 
   describe('getProduct', () => {
-    it('pide el detalle por identificador', async () => {
+    it('requests the detail by identifier', async () => {
       const fetchMock = mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
       await expect(getProduct('ZmGrkLRPXOTpxsU4jjAcv')).resolves.toEqual(productDetailFixture);
       expect(fetchMock.mock.calls[0][0]).toContain('/api/product/ZmGrkLRPXOTpxsU4jjAcv');
     });
 
-    it('cachea cada producto por separado', async () => {
+    it('caches each product separately', async () => {
       const fetchMock = mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
       await getProduct('uno');
@@ -87,20 +87,20 @@ describe('servicio de productos', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
-    it('marca los productos inexistentes como no encontrados', async () => {
+    it('flags non-existent products as not found', async () => {
       mockFetch([{ match: '/api/product/', status: 404 }]);
 
       const error = await getProduct('inexistente').catch((caught) => caught);
 
       expect(error).toBeInstanceOf(ApiError);
       expect(error.status).toBe(404);
-      // `isNotFound` es un getter del prototipo, así que se comprueba directamente.
+      // `isNotFound` is a prototype getter, so it is checked directly.
       expect(error.isNotFound).toBe(true);
     });
   });
 
   describe('addToCart', () => {
-    it('envía identificador, color y almacenamiento en el cuerpo', async () => {
+    it('sends identifier, colour and storage in the body', async () => {
       const fetchMock = mockFetch([{ match: '/api/cart', body: { count: 3 } }]);
 
       const result = await addToCart({ id: 'abc', colorCode: 1000, storageCode: 2000 });
@@ -117,7 +117,7 @@ describe('servicio de productos', () => {
       });
     });
 
-    it('nunca se cachea: cada pulsación llega al API', async () => {
+    it('is never cached: every click reaches the API', async () => {
       const fetchMock = mockFetch([{ match: '/api/cart', body: { count: 1 } }]);
 
       await addToCart({ id: 'abc', colorCode: 1000, storageCode: 2000 });
@@ -126,7 +126,7 @@ describe('servicio de productos', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
-    it('normaliza a cero un contador que el API no devuelva', async () => {
+    it('normalises to zero a counter the API does not return', async () => {
       mockFetch([{ match: '/api/cart', body: {} }]);
 
       await expect(addToCart({ id: 'abc', colorCode: 1, storageCode: 2 })).resolves.toEqual({
@@ -135,8 +135,8 @@ describe('servicio de productos', () => {
     });
   });
 
-  describe('errores de red', () => {
-    it('traduce un fallo de conexión a un ApiError reintentable', async () => {
+  describe('network errors', () => {
+    it('translates a connection failure into a retryable ApiError', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn(() => Promise.reject(new TypeError('Failed to fetch')))

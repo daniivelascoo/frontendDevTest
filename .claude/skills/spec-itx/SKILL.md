@@ -1,191 +1,200 @@
 ---
 name: spec-itx
-description: Requisitos verificables de la prueba técnica front-end (PLP, PDP, cabecera, buscador, acciones de compra, contrato del API y caché de 1 hora). Úsala antes de implementar o modificar cualquier vista o componente de producto, y siempre que haya que comprobar si el proyecto sigue cumpliendo el enunciado.
+description: Verifiable requirements of the front-end technical test (PLP, PDP, header, search, purchase actions, API contract and the 1-hour cache). Use it before implementing or modifying any product view or component, and whenever you need to check whether the project still meets the brief.
 ---
 
-# Requisitos de la prueba
+# Requirements of the test
 
-Esta skill es la traducción del enunciado (`Prueba frontend ITX.pdf`) a criterios
-que se pueden comprobar uno a uno. Ante una duda sobre qué debe hacer la
-aplicación, manda este documento; ante una duda sobre cómo escribirlo, manda
-`convenciones-react`.
+This skill is the translation of the brief (`Prueba frontend ITX.pdf`) into
+criteria that can be checked one by one. For a question about what the
+application must do, this document wins; for a question about how to write it,
+`convenciones-react` wins.
 
-Marca un requisito como cumplido solo si existe un test que lo demuestre o lo has
-verificado en la aplicación en ejecución.
+Mark a requirement as met only if a test proves it or you have verified it in
+the running application.
 
-## Restricciones globales
+Note on language: the requirement text here is in English, but the UI strings it
+quotes stay in Spanish, because that is what the application actually renders.
 
-- **SPA con enrutado en cliente.** Nada de MPA ni SSR. El enrutado es
-  `react-router-dom` sobre `BrowserRouter`.
-- **React con ES6.** El proyecto es JavaScript, no TypeScript. Los contratos se
-  documentan con JSDoc.
-- **Cuatro scripts obligatorios**, que no se deben renombrar:
-  `start` (desarrollo), `build` (producción), `test` (tests), `lint` (análisis).
-- **Entrega evolutiva.** El histórico de git debe leerse como una sucesión de
-  hitos con sentido propio, no como un único volcado de código.
+## Global constraints
 
-## Vista PLP — listado de productos
+- **SPA with client-side routing.** No MPA, no SSR. Routing is
+  `react-router-dom` over `BrowserRouter`.
+- **React with ES6.** The project is JavaScript, not TypeScript. Contracts are
+  documented with JSDoc.
+- **Four mandatory scripts**, which must not be renamed: `start` (development),
+  `build` (production), `test` (tests), `lint` (static analysis).
+- **Incremental delivery.** The git history must read as a sequence of
+  self-contained milestones, not as a single code dump.
 
-| # | Requisito | Dónde vive |
-|---|-----------|-----------|
-| PLP-1 | Muestra todos los elementos que devuelve `GET /api/product` | `pages/ProductListPage.jsx` |
-| PLP-2 | Filtra por el criterio que introduce el usuario | `lib/search.js` |
-| PLP-3 | Al seleccionar un producto navega a su detalle | `components/product/ProductCard.jsx` |
-| PLP-4 | Máximo cuatro elementos por fila, adaptativo | `components/product/ProductGrid.module.css` |
+## PLP view — product list
 
-El máximo de cuatro columnas es un techo, no un número fijo: por debajo de
-`64rem` la rejilla baja a tres, dos o las que quepan. Si tocas ese CSS, comprueba
-que en pantallas anchas nunca aparece una quinta columna.
+| #     | Requirement                                      | Where it lives                              |
+| ----- | ------------------------------------------------ | ------------------------------------------- |
+| PLP-1 | Shows every item returned by `GET /api/product`  | `pages/ProductListPage.jsx`                 |
+| PLP-2 | Filters by the term entered by the user          | `lib/search.js`                             |
+| PLP-3 | Selecting a product navigates to its detail page | `components/product/ProductCard.jsx`        |
+| PLP-4 | At most four items per row, responsive           | `components/product/ProductGrid.module.css` |
 
-### Scroll infinito
+The four-column maximum is a ceiling, not a fixed number: below `64rem` the grid
+drops to three, two or whatever fits. If you touch that CSS, check that a fifth
+column never appears on wide screens.
 
-Añadido sobre el mínimo del enunciado. El listado renderiza tandas de 12 y
-amplía al acercarse el usuario al final (`hooks/useInfiniteScroll.js`). PLP-1
-se sigue cumpliendo: están todos los productos del API y se alcanzan todos; solo
-aparecen progresivamente.
+### Infinite scroll
 
-Cada tanda llega tras una pausa deliberada (`delayMs`), con tarjetas fantasma
-mientras tanto. Los productos ya están en memoria: la pausa existe solo para que
-el usuario perciba que ha ocurrido una carga. Si la quitas, la lista crece de
-golpe y el indicador no llega a verse.
+Added on top of the brief's minimum. The list renders batches of 12 and extends
+as the user approaches the end (`hooks/useInfiniteScroll.js`). PLP-1 still
+holds: every product from the API is there and all of them are reachable; they
+just appear progressively.
 
-El estado de carga se duplica en una ref (`isLoadingRef`) para que `loadMore` no
-cambie de identidad durante la pausa. Si cambiase, el efecto del observador
-volvería a suscribirse a mitad de la espera y dispararía otra tanda.
+Each batch arrives after a deliberate pause (`delayMs`), with ghost cards in the
+meantime. The products are already in memory: the pause exists only so the user
+perceives that a load happened. Remove it and the list grows all at once, with
+the indicator never becoming visible.
 
-Cuatro piezas que van juntas y que no conviene tocar por separado:
+The loading state is mirrored in a ref (`isLoadingRef`) so that `loadMore` does
+not change identity during the pause. If it did, the observer effect would
+resubscribe mid-wait and fire another batch.
 
-- **Centinela + botón.** `components/product/LoadMore.jsx` monta los dos. El
-  botón no es redundante: el scroll infinito solo funciona para quien hace
-  scroll, y sin un control real que enfocar, quien navega con teclado se queda
-  sin forma de ver el resto del catálogo. También es la vía de escape si el
-  navegador no soporta `IntersectionObserver`.
-- **Posición al volver.** `lib/listPosition.js` guarda en `sessionStorage`
-  cuántos productos había desplegados, asociados al criterio de búsqueda. Sin
-  esto, volver desde una ficha devolvería al usuario a los 12 primeros.
-- **`ScrollToTop` ignora las navegaciones `POP`**, para que el navegador
-  restaure el scroll al ir hacia atrás. Si vuelves a saltar arriba siempre, la
-  posición restaurada no sirve de nada.
+Four pieces that belong together and should not be touched separately:
 
-En los tests, jsdom no implementa `IntersectionObserver`: hay un doble en
-`test/helpers.js` y `triggerIntersection()` para simular que el centinela entra
-en pantalla.
+- **Sentinel + button.** `components/product/LoadMore.jsx` mounts both. The
+  button is not redundant: infinite scroll only works for people who scroll, and
+  without a real control to focus, keyboard users have no way to see the rest of
+  the catalogue. It is also the escape hatch if the browser has no
+  `IntersectionObserver`.
+- **Position on return.** `lib/listPosition.js` stores in `sessionStorage` how
+  many products were expanded, keyed by the search term. Without it, coming back
+  from a detail page would return the user to the first 12.
+- **`ScrollToTop` ignores `POP` navigations**, so the browser can restore the
+  scroll position when going back. Always jumping to the top would make the
+  restored position useless.
 
-## Vista PDP — detalle de producto
+In tests, jsdom implements no `IntersectionObserver`: there is a double in
+`test/helpers.js` and `triggerIntersection()` to simulate the sentinel entering
+the viewport.
 
-| # | Requisito | Dónde vive |
-|---|-----------|-----------|
-| PDP-1 | Dos columnas: imagen a la izquierda, detalles y acciones a la derecha | `pages/ProductDetailPage.module.css` |
-| PDP-2 | Enlace de vuelta al listado | `pages/ProductDetailPage.jsx` |
+## PDP view — product detail
 
-## Cabecera
+| #     | Requirement                                                      | Where it lives                       |
+| ----- | ---------------------------------------------------------------- | ------------------------------------ |
+| PDP-1 | Two columns: image on the left, details and actions on the right | `pages/ProductDetailPage.module.css` |
+| PDP-2 | Link back to the list                                            | `pages/ProductDetailPage.jsx`        |
 
-| # | Requisito | Dónde vive |
-|---|-----------|-----------|
-| HEAD-1 | El título o icono enlaza a la vista principal | `components/layout/Header.jsx` |
-| HEAD-2 | Breadcrumbs con la página actual y enlace de navegación | `components/layout/Breadcrumbs.jsx` |
-| HEAD-3 | Número de artículos de la cesta, a la derecha y en todas las vistas | `components/layout/CartIndicator.jsx` |
+## Header
 
-Las migas las publica cada página con `useSetBreadcrumbs`; la cabecera solo las
-pinta. Si añades una vista, publica su rastro o la cabecera se quedará sin migas.
+| #      | Requirement                                             | Where it lives                        |
+| ------ | ------------------------------------------------------- | ------------------------------------- |
+| HEAD-1 | The title or icon links to the main view                | `components/layout/Header.jsx`        |
+| HEAD-2 | Breadcrumbs with the current page and a navigation link | `components/layout/Breadcrumbs.jsx`   |
+| HEAD-3 | Cart item count, on the right and on every view         | `components/layout/CartIndicator.jsx` |
 
-## Buscador
+Breadcrumbs are published by each page with `useSetBreadcrumbs`; the header only
+paints them. If you add a view, publish its trail or the header will be left
+without breadcrumbs.
 
-| # | Requisito |
-|---|-----------|
-| SEARCH-1 | Input de texto libre |
-| SEARCH-2 | Compara el texto con la **marca** y el **modelo** |
-| SEARCH-3 | Filtrado en tiempo real: se relanza en cada cambio del criterio |
+HEAD-3 is covered end to end in `src/App.test.jsx`, which mounts the whole
+application: the counter is visible on both views, takes the value returned by
+the API and survives navigation. `CartIndicator.test.jsx` covers its own
+formatting. Note that page-level tests mount a bare view and therefore have no
+header — a regression there would only show up in `App.test.jsx`.
 
-El *debounce* de 250 ms de `useDebouncedValue` no incumple SEARCH-3: el input se
-actualiza en cada pulsación y lo único que se difiere es el recálculo de la
-lista. No lo conviertas en una búsqueda con botón de enviar.
+## Search
 
-## Tarjeta de producto (ITEM)
+| #        | Requirement                                              |
+| -------- | -------------------------------------------------------- |
+| SEARCH-1 | Free-text input                                          |
+| SEARCH-2 | Compares the text against **brand** and **model**        |
+| SEARCH-3 | Real-time filtering: re-runs on every change of the term |
 
-Debe mostrar imagen, marca, modelo y precio. Ni más ni menos: la tarjeta no es el
-sitio para especificaciones técnicas.
+The 250 ms debounce in `useDebouncedValue` does not break SEARCH-3: the input
+updates on every keystroke and the only thing deferred is recomputing the list.
+Do not turn it into a search with a submit button.
 
-## Descripción del producto (DESCRIPTION)
+## Product card (ITEM)
 
-Los once atributos obligatorios, en este orden, los produce
+Must show image, brand, model and price. No more, no less: the card is not the
+place for technical specifications.
+
+## Product description (DESCRIPTION)
+
+The eleven mandatory attributes, in this order, are produced by
 `lib/productSpecs.js` → `getRequiredSpecs()`:
 
-marca, modelo, precio, CPU, RAM, sistema operativo, resolución de pantalla,
-batería, cámaras, dimensiones, peso.
+brand, model, price, CPU, RAM, operating system, screen resolution, battery,
+cameras, dimensions, weight.
 
-### Tratamiento de los datos ausentes
+### Handling missing data
 
-El API omite datos de tres formas distintas —cadena vacía, solo espacios,
-`null`, campo inexistente o array vacío— y hay **dos reglas opuestas** según la
-importancia del dato:
+The API omits data in several different ways — empty string, whitespace only,
+`null`, missing field or empty array — and there are **two opposite rules**
+depending on how important the value is:
 
-| Tipo de dato | Regla | Dónde |
-|---|---|---|
-| Obligatorio (los once de arriba) | La fila se mantiene y el valor es `-` | `getRequiredSpecs` |
-| Secundario (dentro de «Ver especificaciones completas») | La fila desaparece entera, etiqueta incluida | `getAdditionalSpecGroups` |
+| Kind of data                                        | Rule                                     | Where                     |
+| --------------------------------------------------- | ---------------------------------------- | ------------------------- |
+| Mandatory (the eleven above)                        | The row stays and the value is `-`       | `getRequiredSpecs`        |
+| Secondary (inside "Ver especificaciones completas") | The whole row disappears, label included | `getAdditionalSpecGroups` |
 
-El motivo de la asimetría: en el bloque obligatorio, conservar la fila permite
-comparar dos fichas línea a línea y deja claro que el atributo se ha consultado.
-En el bloque secundario, veinte filas con guion convertirían la ficha en una
-lista de ausencias. Si el API no trae la GPU, no aparece ni la etiqueta «GPU»; y
-un grupo que se queda sin ninguna fila desaparece también, para no dejar un
-título huérfano.
+The reason for the asymmetry: in the mandatory block, keeping the row lets you
+compare two products line by line and makes it clear the attribute was looked
+up. In the secondary block, twenty dashed rows would turn the page into a list
+of absences. If the API has no GPU, not even the "GPU" label appears; and a
+group left with no rows disappears too, so no orphan heading is left behind.
 
-El marcador es la constante `MISSING_VALUE` de `lib/format.js`. No escribas `-`
-a mano: la UI lo compara con esa constante para atenuar el valor y añadirle un
-texto «Dato no disponible» para lectores de pantalla, que de otro modo leerían
-solo «menos».
+The placeholder is the `MISSING_VALUE` constant in `lib/format.js`. Do not write
+`-` by hand: the UI compares against that constant to dim the value and add a
+"Dato no disponible" text for screen readers, which would otherwise read just
+"minus".
 
-**Excepción del precio.** `formatPrice` devuelve por defecto «Precio no
-disponible», porque el precio también se muestra suelto en la tarjeta y en el
-bloque de compra, donde un guion no diría nada. En la ficha técnica, donde la
-fila ya está etiquetada, se le pasa `{ fallback: MISSING_VALUE }`. Un `price`
-vacío nunca debe acabar mostrándose como «0 €».
+**The price exception.** `formatPrice` defaults to "Precio no disponible",
+because the price is also shown on its own in the card and in the purchase
+block, where a dash would say nothing. In the spec table, where the row is
+already labelled, it is passed `{ fallback: MISSING_VALUE }`. An empty `price`
+must never end up displayed as "0 €".
 
-## Acciones de compra (ACTIONS)
+## Purchase actions (ACTIONS)
 
-| # | Requisito |
-|---|-----------|
-| ACT-1 | Selector de almacenamiento y selector de color |
-| ACT-2 | Con una única opción, el selector se muestra igualmente y viene preseleccionado |
-| ACT-3 | Botón de añadir a la cesta |
-| ACT-4 | El POST envía identificador, código de color y código de almacenamiento |
-| ACT-5 | El contador que devuelve el API se muestra en la cabecera y persiste |
+| #     | Requirement                                                          |
+| ----- | -------------------------------------------------------------------- |
+| ACT-1 | Storage selector and colour selector                                 |
+| ACT-2 | With a single option, the selector still shows and comes preselected |
+| ACT-3 | Add-to-cart button                                                   |
+| ACT-4 | The POST sends identifier, colour code and storage code              |
+| ACT-5 | The count returned by the API is shown in the header and persists    |
 
-ACT-2 es un caso fácil de romper sin darse cuenta: hay tests dedicados en
-`pages/ProductDetailPage.test.jsx` con el fixture `singleOptionProductFixture`.
+ACT-2 is easy to break without noticing: there are dedicated tests in
+`pages/ProductDetailPage.test.jsx` using the `singleOptionProductFixture`.
 
-### Productos que no se pueden comprar
+### Products that cannot be bought
 
-Añadido sobre el mínimo del enunciado. Un producto solo es comprable si cumple
-las **tres** condiciones: tiene precio, al menos una opción de almacenamiento y
-al menos una de color. Si falla alguna, el botón se deshabilita y se muestra una
-explicación que **nombra todos** los motivos, no solo el primero.
+Added on top of the brief's minimum. A product is only buyable if it meets
+**all three** conditions: it has a price, at least one storage option and at
+least one colour option. If any fails, the button is disabled and an explanation
+is shown naming **every** reason, not just the first.
 
-La lógica está en `lib/availability.js` (`getPurchaseAvailability`), fuera del
-componente para poder probar las combinaciones sin montar React. Devuelve
+The logic lives in `lib/availability.js` (`getPurchaseAvailability`), outside the
+component so the combinations can be tested without mounting React. It returns
 `{ isAvailable, reasons, message }`.
 
-Tres detalles que conviene no romper:
+Three details worth not breaking:
 
-- **Un precio de `0` es válido**: significa gratis, no inexistente. La regla la
-  decide `hasPrice` en `lib/format.js`, que comparten `formatPrice` y la
-  comprobación de disponibilidad — no la dupliques.
-- **Una opción solo cuenta si tiene código y nombre.** `getPurchaseOptions`
-  descarta las que no cumplan ambas cosas. En el catálogo real, Acer DX650 y
-  Acer M900 devuelven `storages: [{ code: 2000, name: " " }]`; aceptarla por
-  tener código pintaba una pastilla con un guion y daba el producto por
-  comprable. Hay tests de regresión con `blankOptionNameProductFixture`.
-- **Los selectores se siguen mostrando** aunque el producto no sea comprable:
-  el usuario debe poder ver qué opciones existen.
-- El aviso se enlaza al botón con `aria-describedby`, para que un lector de
-  pantalla anuncie el motivo al llegar a él. Un botón deshabilitado y mudo deja
-  al usuario adivinando.
+- **A price of `0` is valid**: it means free, not missing. The rule is decided by
+  `hasPrice` in `lib/format.js`, shared by `formatPrice` and the availability
+  check — do not duplicate it.
+- **An option only counts if it has both code and name.** `getPurchaseOptions`
+  discards any that fails either. In the real catalogue, Acer DX650 and Acer M900
+  return `storages: [{ code: 2000, name: " " }]`; accepting it because it has a
+  code painted a pill with a dash and marked the product as buyable. There are
+  regression tests using `blankOptionNameProductFixture`.
+- **The selectors are still shown** even when the product is not buyable: the
+  user must be able to see which options exist.
+- The notice is linked to the button with `aria-describedby`, so a screen reader
+  announces the reason on reaching it. A disabled, silent button leaves the user
+  guessing.
 
-## Contrato del API
+## API contract
 
-Dominio: `https://itx-frontend-test.onrender.com`
+Domain: `https://itx-frontend-test.onrender.com`
 
 ```
 GET  /api/product         → ProductSummary[]
@@ -194,26 +203,26 @@ POST /api/cart            → { count: number }
      body: { id, colorCode, storageCode }
 ```
 
-Peculiaridades reales del API que hay que respetar y **no** «corregir» en los
+Real quirks of the API that must be respected and **not** "fixed" in the
 fixtures:
 
-- `dimentions` y `secondaryCmera` están mal escritos en el origen.
-- `displayResolution` contiene las **pulgadas** y `displaySize` los **píxeles**:
-  están intercambiados respecto a su nombre. La resolución de pantalla que pide
-  el enunciado sale de `displaySize`.
-- `price` llega como cadena y puede venir vacía, lo que significa «no está a la
-  venta», no «cuesta 0 €».
-- El API está desplegado en un plan gratuito que suspende la instancia: la
-  primera petición tras un rato de inactividad puede tardar decenas de segundos.
-  Por eso el timeout es de 45 s.
+- `dimentions` and `secondaryCmera` are misspelled at the source.
+- `displayResolution` holds the **inches** and `displaySize` the **pixels**: they
+  are swapped with respect to their names. The screen resolution the brief asks
+  for comes from `displaySize`.
+- `price` arrives as a string and can be empty, which means "not for sale", not
+  "costs 0 €".
+- The API is deployed on a free plan that suspends the instance: the first
+  request after a while idle can take tens of seconds. That is why the timeout is
+  45 s.
 
-## Persistencia
+## Persistence
 
-| # | Requisito |
-|---|-----------|
-| CACHE-1 | Se almacena la información cada vez que se pide al API |
-| CACHE-2 | Expira a la hora y entonces se revalida |
-| CACHE-3 | El almacenamiento es siempre de cliente |
+| #       | Requirement                                          |
+| ------- | ---------------------------------------------------- |
+| CACHE-1 | The response is stored every time the API is queried |
+| CACHE-2 | It expires after one hour and is then revalidated    |
+| CACHE-3 | Storage is always client-side                        |
 
-Implementado en `lib/cache.js` (`createCache`, `ONE_HOUR_MS`) y consumido desde
-`api/products.js`. Las mutaciones (`POST /api/cart`) **nunca** se cachean.
+Implemented in `lib/cache.js` (`createCache`, `ONE_HOUR_MS`) and consumed from
+`api/products.js`. Mutations (`POST /api/cart`) are **never** cached.

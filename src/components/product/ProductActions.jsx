@@ -8,15 +8,15 @@ import { useCart } from '../../context/cartContext.js';
 import styles from './ProductActions.module.css';
 
 /**
- * Acciones de compra: selectores de almacenamiento y color, y botón de añadir.
+ * Purchase actions: storage and colour selectors, and the add button.
  *
- * El enunciado exige que los selectores se muestren aunque solo haya una
- * opción y que en ese caso venga preseleccionada. Aquí se preselecciona
- * siempre la primera opción de cada grupo, lo que cubre ese caso y además
- * evita que el usuario pueda añadir a la cesta sin haber elegido nada.
+ * The brief requires the selectors to be shown even when there is a single
+ * option, and preselected in that case. Here the first option of each group is
+ * always preselected, which covers that case and also stops the user from
+ * adding to the cart without having chosen anything.
  *
  * @param {object} props
- * @param {object} props.product Detalle de producto del API.
+ * @param {object} props.product Product detail from the API.
  */
 export function ProductActions({ product }) {
   const { colors, storages } = useMemo(() => getPurchaseOptions(product), [product]);
@@ -29,16 +29,17 @@ export function ProductActions({ product }) {
   const [storageCode, setStorageCode] = useState(() => storages[0]?.code ?? null);
   const [feedback, setFeedback] = useState(null);
 
-  // Al navegar entre productos se reinicia la selección al primer valor de
-  // cada grupo, en vez de arrastrar un código que no pertenece a este producto.
+  // Navigating between products resets the selection to the first value of
+  // each group, rather than carrying over a code that does not belong to this
+  // product.
   useEffect(() => {
     setColorCode(colors[0]?.code ?? null);
     setStorageCode(storages[0]?.code ?? null);
     setFeedback(null);
   }, [colors, storages]);
 
-  // Un producto sin precio, sin almacenamiento o sin color no se puede
-  // comprar: falta o el importe o alguno de los códigos que exige el POST.
+  // A product without a price, storage or colour cannot be bought: either the
+  // amount or one of the codes the POST requires is missing.
   const canSubmit = availability.isAvailable && colorCode !== null && storageCode !== null;
 
   const handleSubmit = async (event) => {
@@ -98,17 +99,17 @@ export function ProductActions({ product }) {
             fullWidth
             loading={status === 'adding'}
             disabled={!canSubmit}
-            // Un botón deshabilitado sin más deja al usuario adivinando. Al
-            // enlazarlo con la explicación, un lector de pantalla la anuncia
-            // al llegar al botón.
+            // A plainly disabled button leaves the user guessing. Linking it
+            // to the explanation makes a screen reader announce the reason on
+            // reaching the button.
             aria-describedby={availability.message ? unavailableId : undefined}
           >
             {status === 'adding' ? 'Añadiendo…' : 'Añadir a la cesta'}
           </Button>
         </div>
 
-        {/* Región viva permanente: si solo se montara al haber mensaje, los
-            lectores de pantalla podrían no llegar a anunciarlo. */}
+        {/* Permanent live region: if it were only mounted once there is a
+            message, screen readers might never announce it. */}
         <p
           className={`${styles.feedback} ${feedback ? styles[feedback.type] : ''}`}
           role="status"

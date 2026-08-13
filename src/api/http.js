@@ -1,14 +1,17 @@
 import { API_BASE_URL, REQUEST_TIMEOUT_MS } from './config.js';
 
 /**
- * Error de red o de API con contexto suficiente para que la UI decida qué
- * mensaje mostrar sin tener que inspeccionar strings.
+ * Network or API error carrying enough context for the UI to decide which
+ * message to show without having to inspect strings.
+ *
+ * Its `message` is in Spanish because `ProductDetailPage` surfaces it directly
+ * to the user.
  */
 export class ApiError extends Error {
   /**
    * @param {string} message
    * @param {object} [details]
-   * @param {number} [details.status] Código HTTP, si hubo respuesta.
+   * @param {number} [details.status] HTTP status code, if there was a response.
    * @param {string} [details.url]
    * @param {'timeout' | 'network' | 'http' | 'parse'} [details.kind]
    * @param {unknown} [details.cause]
@@ -22,28 +25,29 @@ export class ApiError extends Error {
     this.cause = cause;
   }
 
-  /** El recurso no existe (404): la UI lo trata como "producto no encontrado". */
+  /** The resource does not exist (404): the UI treats it as "product not found". */
   get isNotFound() {
     return this.status === 404;
   }
 
-  /** Reintentar tiene sentido en fallos de red, timeout o errores 5xx. */
+  /** Retrying makes sense for network failures, timeouts or 5xx errors. */
   get isRetryable() {
     return this.kind === 'network' || this.kind === 'timeout' || (this.status ?? 0) >= 500;
   }
 }
 
 /**
- * Realiza una petición al API y devuelve el JSON ya parseado.
+ * Performs a request against the API and returns the parsed JSON.
  *
- * Añade sobre `fetch`: URL base, timeout por AbortController, propagación de
- * la señal de cancelación del llamante y normalización de errores a `ApiError`.
+ * On top of `fetch` it adds: base URL, an AbortController-based timeout,
+ * propagation of the caller's cancellation signal, and normalisation of errors
+ * into `ApiError`.
  *
- * @param {string} path Ruta relativa al dominio del API (p. ej. `/api/product`).
+ * @param {string} path Path relative to the API domain (e.g. `/api/product`).
  * @param {object} [options]
  * @param {string} [options.method]
- * @param {unknown} [options.body] Se serializa como JSON si se proporciona.
- * @param {AbortSignal} [options.signal] Señal del llamante (desmontaje, etc.).
+ * @param {unknown} [options.body] Serialised as JSON when provided.
+ * @param {AbortSignal} [options.signal] Caller's signal (unmount, etc.).
  * @param {number} [options.timeoutMs]
  * @returns {Promise<unknown>}
  */
@@ -58,8 +62,8 @@ export async function request(
     controller.abort(new DOMException('Timeout', 'TimeoutError'));
   }, timeoutMs);
 
-  // Si el llamante cancela (por ejemplo, al desmontar el componente),
-  // cancelamos también la petición en curso.
+  // If the caller cancels (for instance when unmounting the component), cancel
+  // the in-flight request too.
   const abortFromCaller = () => controller.abort(signal?.reason);
   if (signal) {
     if (signal.aborted) abortFromCaller();
@@ -75,8 +79,8 @@ export async function request(
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (error) {
-    // Una cancelación pedida por el llamante no es un error de la aplicación:
-    // se propaga tal cual para que el hook la ignore.
+    // A cancellation requested by the caller is not an application error: it is
+    // rethrown as-is so the hook can ignore it.
     if (signal?.aborted) throw error;
 
     if (controller.signal.aborted) {
@@ -104,7 +108,7 @@ export async function request(
     });
   }
 
-  // 204 y cuerpos vacíos son respuestas válidas sin JSON.
+  // 204 and empty bodies are valid responses with no JSON.
   const text = await response.text();
   if (!text) return null;
 
