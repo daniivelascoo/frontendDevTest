@@ -1,9 +1,12 @@
 /**
- * Datos de prueba con la forma exacta que devuelve el API real.
+ * Test data with the exact shape the real API returns.
  *
- * Se han copiado de respuestas reales (incluidas sus erratas de nombre, como
- * `dimentions` o `secondaryCmera`): un fixture que "arregla" el contrato del
- * servidor haría pasar tests que fallarían en producción.
+ * These were copied from real responses (typos included, such as `dimentions`
+ * or `secondaryCmera`): a fixture that "fixes" the server's contract would make
+ * tests pass that would fail in production.
+ *
+ * The data values stay in Spanish where the real catalogue has them so, and the
+ * synthetic ones (`Marca`, `Modelo N`) are matched literally by the list tests.
  */
 
 /** @type {Array<object>} */
@@ -33,20 +36,20 @@ export const productListFixture = [
     id: 'kQ0LmZ8nRvXyT1sWpE3Ac',
     brand: 'Apple',
     model: 'iPhone 11 Pro',
-    // Producto sin precio: el catálogo real contiene casos así.
+    // Product without a price: the real catalogue contains cases like this.
     price: '',
     imgUrl: 'https://itx-frontend-test.onrender.com/images/kQ0LmZ8nRvXyT1sWpE3Ac.jpg',
   },
 ];
 
 /**
- * Genera un catálogo del tamaño que haga falta.
+ * Generates a catalogue of whatever size is needed.
  *
- * El fixture normal tiene cuatro productos, insuficiente para ejercitar el
- * scroll infinito, que muestra tandas de doce.
+ * The normal fixture has four products, not enough to exercise the infinite
+ * scroll, which shows batches of twelve.
  *
  * @param {number} count
- * @param {string} [brand] Marca común, para poder filtrarlos todos a la vez.
+ * @param {string} [brand] Shared brand, so they can all be filtered at once.
  * @returns {Array<object>}
  */
 export function buildProductListFixture(count, brand = 'Marca') {
@@ -59,7 +62,7 @@ export function buildProductListFixture(count, brand = 'Marca') {
   }));
 }
 
-/** Detalle con varias opciones de color y almacenamiento. */
+/** Detail with several colour and storage options. */
 export const productDetailFixture = {
   id: 'ZmGrkLRPXOTpxsU4jjAcv',
   brand: 'Acer',
@@ -111,11 +114,11 @@ export const productDetailFixture = {
 };
 
 /**
- * Detalle al que le faltan datos, en todas las formas en que el API los omite:
- * cadena vacía, espacios en blanco, `null`, ausencia del campo y array vacío.
+ * A detail with data missing in every way the API omits it: empty string,
+ * whitespace, `null`, absent field and empty array.
  *
- * Sirve para comprobar las dos reglas opuestas de la ficha: los atributos
- * obligatorios muestran un guion y los secundarios desaparecen.
+ * It serves to check the two opposite rules of the product page: mandatory
+ * attributes show a dash and secondary ones disappear.
  */
 export const incompleteProductFixture = {
   id: 'incompleto-0001',
@@ -123,7 +126,7 @@ export const incompleteProductFixture = {
   model: 'Modelo Básico',
   price: '',
   imgUrl: '',
-  // Obligatorios ausentes.
+  // Mandatory ones, absent.
   cpu: '',
   ram: '   ',
   os: null,
@@ -133,13 +136,13 @@ export const incompleteProductFixture = {
   secondaryCmera: '',
   dimentions: '',
   weight: '',
-  // Secundarios ausentes: no deben aparecer ni sus etiquetas.
+  // Secondary ones, absent: neither they nor their labels should appear.
   gpu: '',
   chipset: null,
   nfc: '',
   radio: '   ',
   sensors: [],
-  // Algún secundario sí presente, para que su grupo no desaparezca entero.
+  // Some secondary ones present, so their group does not vanish entirely.
   usb: 'USB-C 2.0',
   options: {
     colors: [{ code: 1000, name: 'Negro' }],
@@ -148,12 +151,12 @@ export const incompleteProductFixture = {
 };
 
 /**
- * Producto cuyo único almacenamiento llega con el nombre en blanco.
+ * Product whose only storage option arrives with a blank name.
  *
- * No es un caso inventado: en el catálogo real, Acer DX650 y Acer M900
- * devuelven exactamente `storages: [{ code: 2000, name: " " }]`. Tener código
- * no basta para que una opción sea elegible; sin nombre, el usuario no puede
- * saber qué está comprando.
+ * This is not a made-up case: in the real catalogue, Acer DX650 and Acer M900
+ * return exactly `storages: [{ code: 2000, name: " " }]`. Having a code is not
+ * enough for an option to be eligible; without a name the user cannot know what
+ * they are buying.
  */
 export const blankOptionNameProductFixture = {
   ...productDetailFixture,
@@ -167,7 +170,7 @@ export const blankOptionNameProductFixture = {
   },
 };
 
-/** Detalle con una única opción por grupo, para el caso de preselección. */
+/** Detail with a single option per group, for the preselection case. */
 export const singleOptionProductFixture = {
   ...productDetailFixture,
   id: 'sBnkNCTsVLTjXCYFtqB0f',

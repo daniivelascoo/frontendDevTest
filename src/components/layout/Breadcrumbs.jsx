@@ -3,11 +3,11 @@ import { useBreadcrumbs } from '../../context/breadcrumbsContext.js';
 import styles from './Breadcrumbs.module.css';
 
 /**
- * Migas de pan de la cabecera.
+ * Breadcrumbs in the header.
  *
- * La última miga es la página actual: se marca con `aria-current` y nunca es
- * un enlace, porque enlazar a la página en la que ya estás no aporta nada a
- * quien navega con teclado o lector de pantalla.
+ * The last crumb is the current page: it is marked with `aria-current` and is
+ * never a link, because linking to the page you are already on adds nothing for
+ * someone navigating with a keyboard or a screen reader.
  */
 export function Breadcrumbs() {
   const trail = useBreadcrumbs();

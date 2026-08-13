@@ -4,11 +4,11 @@ import { formatPrice, formatProductName, formatSpecValue } from '../../lib/forma
 import styles from './ProductCard.module.css';
 
 /**
- * Tarjeta de producto del listado: imagen, marca, modelo y precio.
+ * Product card in the list: image, brand, model and price.
  *
- * Toda la tarjeta es un único enlace, no una tarjeta con un enlace dentro.
- * Eso deja un solo tabulador por producto y evita el clásico "clic en la
- * tarjeta no hace nada, clic en el título sí".
+ * The whole card is a single link, not a card with a link inside. That leaves
+ * one tab stop per product and avoids the classic "clicking the card does
+ * nothing, clicking the title works".
  *
  * @param {object} props
  * @param {{ id: string, brand: string, model: string, price: string, imgUrl: string }} props.product
@@ -17,9 +17,9 @@ import styles from './ProductCard.module.css';
 export function ProductCard({ product, imageLoading = 'lazy' }) {
   const { id, price, imgUrl } = product;
 
-  // La marca y el modelo se omiten si no vienen, en lugar de dejar un párrafo
-  // vacío ocupando su hueco y desalineando las tarjetas de la fila. El nombre
-  // completo cubre el caso de que falte una de las dos partes.
+  // Brand and model are omitted when missing, rather than leaving an empty
+  // paragraph taking up space and misaligning the cards in the row. The full
+  // name covers the case where one of the two parts is missing.
   const brand = formatSpecValue(product.brand);
   const model = formatSpecValue(product.model);
   const name = formatProductName(product);
@@ -36,8 +36,8 @@ export function ProductCard({ product, imageLoading = 'lazy' }) {
 
         <div className={styles.body}>
           {brand && <p className={styles.brand}>{brand}</p>}
-          {/* El encabezado se mantiene siempre: es el nombre accesible del
-              enlace y sin él la tarjeta sería un enlace sin destino legible. */}
+          {/* The heading is always kept: it is the link's accessible name, and
+              without it the card would be a link with no readable destination. */}
           <h2 className={styles.model}>{model || name || 'Producto sin nombre'}</h2>
           <p className={styles.price}>{formatPrice(price)}</p>
         </div>

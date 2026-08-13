@@ -2,17 +2,17 @@ import { useId } from 'react';
 import styles from './SearchBar.module.css';
 
 /**
- * Buscador del catálogo.
+ * Catalogue search box.
  *
- * Es un componente controlado y sin botón de envío: el filtrado se dispara en
- * cada pulsación, como pide el enunciado. El `<form>` con `onSubmit`
- * neutralizado existe solo para que Enter no recargue la página y para que los
- * navegadores móviles ofrezcan la tecla "buscar".
+ * A controlled component with no submit button: filtering fires on every
+ * keystroke, as the brief asks. The `<form>` with a neutralised `onSubmit`
+ * exists only so Enter does not reload the page and so mobile browsers offer
+ * the "search" key.
  *
  * @param {object} props
  * @param {string} props.value
  * @param {(value: string) => void} props.onChange
- * @param {number} [props.resultCount] Resultados actuales, para anunciarlos.
+ * @param {number} [props.resultCount] Current results, to announce them.
  * @param {boolean} [props.disabled]
  */
 export function SearchBar({ value, onChange, resultCount, disabled = false }) {
@@ -50,7 +50,7 @@ export function SearchBar({ value, onChange, resultCount, disabled = false }) {
           placeholder="Buscar por marca o modelo"
           autoComplete="off"
           disabled={disabled}
-          // El resultado se anuncia aparte, en la región `aria-live` de abajo.
+          // The result is announced separately, in the `aria-live` region below.
           aria-describedby={`${inputId}-results`}
         />
 
@@ -77,8 +77,8 @@ export function SearchBar({ value, onChange, resultCount, disabled = false }) {
         )}
       </div>
 
-      {/* Comunica a los lectores de pantalla cuántos productos quedan tras
-          filtrar, algo que de otro modo solo percibiría quien ve el grid. */}
+      {/* Tells screen readers how many products remain after filtering,
+          something only someone seeing the grid would otherwise notice. */}
       <p id={`${inputId}-results`} className="visually-hidden" aria-live="polite">
         {resultCount === undefined
           ? ''

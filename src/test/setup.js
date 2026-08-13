@@ -4,15 +4,15 @@ import { cleanup } from '@testing-library/react';
 import { MockIntersectionObserver } from './helpers.js';
 
 /**
- * Configuración global de los tests.
+ * Global test configuration.
  *
- * El objetivo es que cada test arranque de un entorno limpio: sin restos en
- * `localStorage` de un test anterior ni mocks compartidos entre archivos.
+ * The goal is for every test to start from a clean environment: no leftovers in
+ * `localStorage` from a previous test and no mocks shared between files.
  */
 
-// jsdom no implementa `IntersectionObserver`, del que depende el scroll
-// infinito del listado. Se asigna directamente y no con `stubGlobal` para que
-// el `unstubAllGlobals` de abajo no lo retire entre tests.
+// jsdom does not implement `IntersectionObserver`, which the list's infinite
+// scroll depends on. It is assigned directly rather than through `stubGlobal`
+// so that the `unstubAllGlobals` below does not remove it between tests.
 globalThis.IntersectionObserver = MockIntersectionObserver;
 
 afterEach(() => {
@@ -24,12 +24,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-// jsdom no implementa `scrollTo`; sin este doble, `<ScrollToTop>` lanzaría en
-// cada cambio de ruta dentro de los tests.
+// jsdom does not implement `scrollTo`; without this double, `<ScrollToTop>`
+// would throw on every route change inside the tests.
 window.scrollTo = vi.fn();
 
-// jsdom tampoco implementa `matchMedia`, que consumen algunas utilidades de
-// media queries.
+// jsdom does not implement `matchMedia` either, which some media-query
+// utilities consume.
 if (!window.matchMedia) {
   window.matchMedia = (query) => ({
     matches: false,

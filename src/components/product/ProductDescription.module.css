@@ -45,8 +45,8 @@
   overflow-wrap: anywhere;
 }
 
-/* Un dato ausente se atenúa para que no compita visualmente con los reales:
-   la fila sigue ahí para poder comparar fichas, pero se lee como un hueco. */
+/* Missing data is dimmed so it does not compete visually with the real values:
+   the row stays so sheets can be compared, but it reads as a gap. */
 .value[data-missing] {
   color: var(--color-line-strong);
 }

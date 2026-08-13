@@ -1,15 +1,15 @@
 /**
- * Adaptador de almacenamiento tolerante a fallos.
+ * Fault-tolerant storage adapter.
  *
- * `localStorage` puede lanzar excepciones en más casos de los que parece:
- * modo privado de Safari, cookies de terceros bloqueadas, cuota agotada o
- * entornos sin `window`. Como la caché es una optimización y nunca un
- * requisito para que la aplicación funcione, cualquier fallo degrada a un
- * `Map` en memoria en lugar de propagar el error.
+ * `localStorage` can throw in more cases than it seems: Safari private mode,
+ * blocked third-party cookies, exhausted quota, or environments with no
+ * `window`. Since the cache is an optimisation and never a requirement for the
+ * application to work, any failure degrades to an in-memory `Map` instead of
+ * propagating the error.
  */
 
 /**
- * Implementación en memoria con la misma interfaz que `Storage`.
+ * In-memory implementation with the same interface as `Storage`.
  * @returns {Storage}
  */
 export function createMemoryStorage() {
@@ -38,8 +38,8 @@ export function createMemoryStorage() {
 }
 
 /**
- * Comprueba que un `Storage` es realmente utilizable con una escritura de
- * prueba: la mera existencia del objeto no garantiza que no lance al escribir.
+ * Checks that a `Storage` is actually usable with a probe write: the mere
+ * existence of the object does not guarantee it will not throw on write.
  *
  * @param {Storage | undefined | null} candidate
  * @returns {boolean}
@@ -58,8 +58,8 @@ export function isStorageUsable(candidate) {
 }
 
 /**
- * Devuelve el mejor almacenamiento disponible: `localStorage` si es usable,
- * y si no un sustituto en memoria.
+ * Returns the best available storage: `localStorage` if it is usable, and an
+ * in-memory stand-in otherwise.
  *
  * @param {Storage} [preferred]
  * @returns {Storage}

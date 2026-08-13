@@ -1,13 +1,13 @@
 import styles from './Spinner.module.css';
 
 /**
- * Indicador de carga.
+ * Loading indicator.
  *
- * Se anuncia con `role="status"`, de modo que un lector de pantalla informe de
- * que hay una carga en curso en lugar de encontrarse una región vacía.
+ * It is announced with `role="status"`, so a screen reader reports that a load
+ * is in progress instead of running into an empty region.
  *
  * @param {object} props
- * @param {string} [props.label] Texto anunciado durante la carga.
+ * @param {string} [props.label] Text announced during the load.
  */
 export function Spinner({ label = 'Cargando…' }) {
   return (

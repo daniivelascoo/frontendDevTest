@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Devuelve `value` con un retardo, reiniciando la espera en cada cambio.
+ * Returns `value` after a delay, restarting the wait on every change.
  *
- * El enunciado pide filtrado en tiempo real, y así es: el input se actualiza
- * en cada pulsación sin latencia. Lo que se retrasa es únicamente el trabajo
- * de recalcular la lista, para no filtrar 100 productos en cada tecla.
+ * The brief asks for real-time filtering, and that is what this is: the input
+ * updates on every keystroke with no latency. The only thing deferred is the
+ * work of recomputing the list, so 100 products are not filtered on every key.
  *
  * @template T
  * @param {T} value

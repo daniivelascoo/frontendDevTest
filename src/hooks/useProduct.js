@@ -3,9 +3,9 @@ import { getProduct } from '../api/products.js';
 import { useAsyncResource } from './useAsyncResource.js';
 
 /**
- * Detalle de un producto concreto.
+ * Detail of a specific product.
  *
- * @param {string | undefined} id Identificador del producto.
+ * @param {string | undefined} id Product identifier.
  * @returns {{
  *   product: object | null,
  *   status: import('./useAsyncResource.js').ResourceStatus,

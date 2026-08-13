@@ -11,7 +11,7 @@ import {
 import { mockFetch } from '../test/helpers.js';
 import { renderWithProviders } from '../test/utils.jsx';
 
-/** Monta la PDP en la ruta del producto del fixture. */
+/** Mounts the PDP on the route of the fixture product. */
 function renderDetail(options = {}) {
   return renderWithProviders(<ProductDetailPage />, {
     route: `/product/${productDetailFixture.id}`,
@@ -25,7 +25,7 @@ describe('ProductDetailPage', () => {
     invalidateProductCache();
   });
 
-  it('muestra la imagen y el nombre del producto', async () => {
+  it('shows the product image and name', async () => {
     mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
     renderDetail();
@@ -34,7 +34,7 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('img', { name: 'Acer Iconia Talk S' })).toBeInTheDocument();
   });
 
-  it('muestra los once atributos que exige el enunciado', async () => {
+  it('shows the eleven attributes required by the brief', async () => {
     mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
     renderDetail();
@@ -63,7 +63,7 @@ describe('ProductDetailPage', () => {
     expect(within(description).getByText('260 g')).toBeInTheDocument();
   });
 
-  it('ofrece un enlace de vuelta al listado', async () => {
+  it('offers a link back to the list', async () => {
     mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
     renderDetail();
@@ -73,7 +73,7 @@ describe('ProductDetailPage', () => {
     expect(backLink).toHaveAttribute('href', '/');
   });
 
-  it('muestra los selectores de almacenamiento y color', async () => {
+  it('shows the storage and colour selectors', async () => {
     mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
     renderDetail();
@@ -85,7 +85,7 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('radio', { name: 'Black' })).toBeInTheDocument();
   });
 
-  it('preselecciona la primera opción de cada grupo', async () => {
+  it('preselects the first option of each group', async () => {
     mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
     renderDetail();
@@ -97,7 +97,7 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('radio', { name: 'Black' })).toBeChecked();
   });
 
-  it('muestra el selector con la opción marcada aunque solo haya una', async () => {
+  it('shows the selector with its option checked even when there is only one', async () => {
     mockFetch([{ match: '/api/product/', body: singleOptionProductFixture }]);
 
     renderDetail();
@@ -106,7 +106,7 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('radio', { name: 'Midnight Black' })).toBeChecked();
   });
 
-  it('permite cambiar la opción seleccionada', async () => {
+  it('allows changing the selected option', async () => {
     mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
     const { user } = renderDetail();
@@ -118,7 +118,7 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('radio', { name: '16 GB' })).not.toBeChecked();
   });
 
-  it('envía al API el producto con los códigos seleccionados', async () => {
+  it('sends the product to the API with the selected codes', async () => {
     const fetchMock = mockFetch([
       { match: '/api/cart', body: { count: 1 } },
       { match: '/api/product/', body: productDetailFixture },
@@ -142,7 +142,7 @@ describe('ProductDetailPage', () => {
     });
   });
 
-  it('confirma al usuario que el producto se ha añadido', async () => {
+  it('confirms to the user that the product was added', async () => {
     mockFetch([
       { match: '/api/cart', body: { count: 1 } },
       { match: '/api/product/', body: productDetailFixture },
@@ -156,7 +156,7 @@ describe('ProductDetailPage', () => {
     expect(await screen.findByText('Producto añadido a la cesta.')).toBeInTheDocument();
   });
 
-  it('avisa si el API rechaza la petición de añadir', async () => {
+  it('warns the user if the API rejects the add request', async () => {
     mockFetch([
       { match: '/api/cart', status: 500 },
       { match: '/api/product/', body: productDetailFixture },
@@ -170,16 +170,16 @@ describe('ProductDetailPage', () => {
     expect(await screen.findByText(/La petición ha fallado con estado 500/)).toBeInTheDocument();
   });
 
-  describe('datos ausentes', () => {
-    it('muestra un guion en los atributos obligatorios que faltan', async () => {
+  describe('missing data', () => {
+    it('shows a dash for the missing mandatory attributes', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
 
       const description = await screen.findByRole('region', { name: 'Descripción' });
 
-      // Del fixture solo llegan marca y modelo: los otros nueve atributos
-      // conservan su fila y su etiqueta, con el guion como valor.
+      // Only brand and model arrive in the fixture: the other nine attributes
+      // keep their row and their label, with the dash as the value.
       const missingLabels = [
         'Precio',
         'CPU',
@@ -198,12 +198,12 @@ describe('ProductDetailPage', () => {
 
       expect(within(description).getAllByText('-')).toHaveLength(missingLabels.length);
 
-      // Y los dos que sí llegan mantienen su valor real.
+      // And the two that do arrive keep their real value.
       expect(within(description).getByText('Genérica')).toBeInTheDocument();
       expect(within(description).getByText('Modelo Básico')).toBeInTheDocument();
     });
 
-    it('anuncia la ausencia a los lectores de pantalla, que solo leerían «menos»', async () => {
+    it('announces the absence to screen readers, which would only read "minus"', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
@@ -213,24 +213,24 @@ describe('ProductDetailPage', () => {
       expect(within(description).getAllByText('Dato no disponible').length).toBeGreaterThan(0);
     });
 
-    it('no muestra las especificaciones secundarias que faltan, ni sus etiquetas', async () => {
+    it('hides the missing secondary specifications, labels included', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       const { user } = renderDetail();
 
       await user.click(await screen.findByText('Ver especificaciones completas'));
 
-      // Ausentes en el fixture: ni etiqueta ni valor.
+      // Absent in the fixture: neither label nor value.
       ['GPU', 'Chipset', 'NFC', 'Radio', 'Sensores'].forEach((label) => {
         expect(screen.queryByText(label)).not.toBeInTheDocument();
       });
 
-      // El que sí llega se muestra, así que su grupo no ha desaparecido.
+      // The one that does arrive is shown, so its group has not disappeared.
       expect(screen.getByText('USB')).toBeInTheDocument();
       expect(screen.getByText('USB-C 2.0')).toBeInTheDocument();
     });
 
-    it('no muestra «0 €» cuando el producto no tiene precio', async () => {
+    it('does not show "0 €" when the product has no price', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
@@ -241,22 +241,22 @@ describe('ProductDetailPage', () => {
       expect(screen.getByText('Precio no disponible')).toBeInTheDocument();
     });
 
-    it('sigue mostrando los selectores aunque el producto no se pueda comprar', async () => {
+    it('still shows the selectors even when the product cannot be bought', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
 
-      // Las opciones existen y se preseleccionan; lo que falta es el precio.
+      // The options exist and are preselected; what is missing is the price.
       expect(await screen.findByRole('radio', { name: '64 GB' })).toBeChecked();
       expect(screen.getByRole('radio', { name: 'Negro' })).toBeChecked();
     });
   });
 
-  describe('productos que no se pueden comprar', () => {
+  describe('products that cannot be bought', () => {
     const addButton = () => screen.getByRole('button', { name: /Añadir a la cesta/ });
 
-    it('deshabilita el botón y explica el motivo cuando falta el precio', async () => {
-      // El fixture trae opciones de color y almacenamiento, pero `price: ''`.
+    it('disables the button and explains why when the price is missing', async () => {
+      // The fixture carries colour and storage options, but `price: ''`.
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
@@ -269,7 +269,7 @@ describe('ProductDetailPage', () => {
       expect(addButton()).toBeDisabled();
     });
 
-    it('deshabilita el botón cuando faltan las opciones de almacenamiento', async () => {
+    it('disables the button when the storage options are missing', async () => {
       mockFetch([
         {
           match: '/api/product/',
@@ -286,7 +286,7 @@ describe('ProductDetailPage', () => {
       expect(addButton()).toBeDisabled();
     });
 
-    it('deshabilita el botón cuando faltan las opciones de color', async () => {
+    it('disables the button when the colour options are missing', async () => {
       mockFetch([
         {
           match: '/api/product/',
@@ -303,7 +303,7 @@ describe('ProductDetailPage', () => {
       expect(addButton()).toBeDisabled();
     });
 
-    it('enumera todos los motivos cuando falta más de una cosa', async () => {
+    it('lists every reason when more than one thing is missing', async () => {
       mockFetch([
         { match: '/api/product/', body: { ...incompleteProductFixture, options: undefined } },
       ]);
@@ -318,7 +318,7 @@ describe('ProductDetailPage', () => {
       expect(addButton()).toBeDisabled();
     });
 
-    it('asocia la explicación al botón para que un lector de pantalla la anuncie', async () => {
+    it('links the explanation to the button so a screen reader announces it', async () => {
       mockFetch([{ match: '/api/product/', body: incompleteProductFixture }]);
 
       renderDetail();
@@ -328,7 +328,7 @@ describe('ProductDetailPage', () => {
       expect(addButton()).toHaveAttribute('aria-describedby', message.getAttribute('id'));
     });
 
-    it('no llega a llamar al API aunque se fuerce el envío del formulario', async () => {
+    it('never calls the API even if the form submission is forced', async () => {
       const fetchMock = mockFetch([
         { match: '/api/cart', body: { count: 1 } },
         { match: '/api/product/', body: incompleteProductFixture },
@@ -342,10 +342,10 @@ describe('ProductDetailPage', () => {
       expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/api/cart'))).toBe(false);
     });
 
-    it('no ofrece una pastilla «-» ni deja comprar si la opción no tiene nombre', async () => {
-      // Regresión: Acer DX650 devuelve `storages: [{ code: 2000, name: " " }]`.
-      // Al tener código contaba como opción válida, así que se pintaba una
-      // pastilla con un guion y el producto se podía añadir a la cesta.
+    it('offers no "-" pill and no purchase when an option has no name', async () => {
+      // Regression: Acer DX650 returns `storages: [{ code: 2000, name: " " }]`.
+      // Having a code made it count as a valid option, so a pill with a dash
+      // was painted and the product could be added to the cart.
       mockFetch([{ match: '/api/product/', body: blankOptionNameProductFixture }]);
 
       renderDetail();
@@ -353,14 +353,14 @@ describe('ProductDetailPage', () => {
       expect(await screen.findByText(/no tiene opciones de almacenamiento\./)).toBeInTheDocument();
       expect(addButton()).toBeDisabled();
 
-      // No debe quedar ningún radio con el marcador como etiqueta.
+      // No radio should be left with the placeholder as its label.
       expect(screen.queryByRole('radio', { name: '-' })).not.toBeInTheDocument();
-      // El grupo de almacenamiento desaparece; el de color, que sí es válido, no.
+      // The storage group disappears; the colour one, which is valid, does not.
       expect(screen.queryByRole('group', { name: /Almacenamiento/ })).not.toBeInTheDocument();
       expect(screen.getByRole('group', { name: /Color/ })).toBeInTheDocument();
     });
 
-    it('no muestra ningún aviso cuando el producto sí se puede comprar', async () => {
+    it('shows no notice when the product can indeed be bought', async () => {
       mockFetch([{ match: '/api/product/', body: productDetailFixture }]);
 
       renderDetail();
@@ -372,7 +372,7 @@ describe('ProductDetailPage', () => {
     });
   });
 
-  it('trata un 404 como producto no encontrado y no ofrece reintentar', async () => {
+  it('treats a 404 as product not found and offers no retry', async () => {
     mockFetch([{ match: '/api/product/', status: 404 }]);
 
     renderDetail();
@@ -381,7 +381,7 @@ describe('ProductDetailPage', () => {
     expect(screen.queryByRole('button', { name: 'Reintentar' })).not.toBeInTheDocument();
   });
 
-  it('ofrece reintentar ante un error de servidor', async () => {
+  it('offers a retry on a server error', async () => {
     mockFetch([{ match: '/api/product/', status: 500 }]);
 
     renderDetail();

@@ -13,9 +13,9 @@ import styles from './ProductDetailPage.module.css';
 /**
  * PDP — Product Details Page.
  *
- * Dos columnas, tal y como describe el enunciado: la imagen a la izquierda y,
- * a la derecha, la descripción y las acciones de compra. En pantallas
- * estrechas las columnas se apilan.
+ * Two columns, exactly as the brief describes: the image on the left and, on
+ * the right, the description and the purchase actions. On narrow screens the
+ * columns stack.
  */
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -67,7 +67,7 @@ export function ProductDetailPage() {
               ? 'El producto que buscas ya no está disponible o el enlace no es correcto.'
               : (error?.message ?? 'Ha ocurrido un error inesperado al contactar con el servidor.')
           }
-          // Reintentar un 404 solo repetiría el mismo error.
+          // Retrying a 404 would only repeat the same error.
           action={notFound ? undefined : { label: 'Reintentar', onClick: handleRetry }}
         />
       </div>
@@ -79,8 +79,8 @@ export function ProductDetailPage() {
       {backLink}
 
       <h1 className={styles.title}>
-        {/* Igual que en la tarjeta: la marca se omite si no viene, y el modelo
-            recurre al nombre completo para que el título nunca quede vacío. */}
+        {/* Same as in the card: the brand is omitted when missing, and the
+            model falls back to the full name so the title is never empty. */}
         {brand && <span className={styles.brand}>{brand}</span>}
         <span className={styles.model}>{model || productName || 'Producto sin nombre'}</span>
       </h1>
@@ -89,8 +89,8 @@ export function ProductDetailPage() {
         <div className={styles.imageColumn}>
           <ProductImage
             src={product.imgUrl}
-            // Un `alt` vacío marcaría la imagen como decorativa, que es
-            // justo lo contrario de lo que es aquí.
+            // An empty `alt` would mark the image as decorative, which is
+            // precisely the opposite of what it is here.
             alt={productName || 'Producto sin nombre'}
             variant="detail"
             loading="eager"

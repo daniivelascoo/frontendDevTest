@@ -5,27 +5,27 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  */
 
 /**
- * Carga un recurso asíncrono exponiendo una máquina de estados explícita.
+ * Loads an async resource exposing an explicit state machine.
  *
- * Un único `status` en lugar de varios booleanos sueltos evita los estados
- * imposibles (`loading` y `error` a la vez) y hace que la UI sea un `switch`.
+ * A single `status` instead of several loose booleans rules out impossible
+ * states (`loading` and `error` at once) and turns the UI into a `switch`.
  *
- * Al desmontar o al relanzar la carga, el resultado en vuelo se descarta en
- * lugar de abortarse: la petición sigue viva para que su resultado llegue a la
- * caché compartida y la aproveche el siguiente consumidor.
+ * On unmount, or when the load is restarted, the in-flight result is discarded
+ * rather than aborted: the request stays alive so its result reaches the shared
+ * cache and the next consumer can use it.
  *
  * @template T
  * @param {(options: { signal: AbortSignal }) => Promise<T>} fetcher
  * @param {object} [options]
- * @param {boolean} [options.enabled] Si es `false`, no se lanza la carga.
- * @param {unknown[]} [options.deps] Dependencias que reinician la carga.
+ * @param {boolean} [options.enabled] When `false`, the load is not started.
+ * @param {unknown[]} [options.deps] Dependencies that restart the load.
  * @returns {{ data: T | null, status: ResourceStatus, error: Error | null, reload: (options?: { force?: boolean }) => void, isLoading: boolean }}
  */
 export function useAsyncResource(fetcher, { enabled = true, deps = [] } = {}) {
   const [state, setState] = useState({ data: null, status: 'idle', error: null });
 
-  // Cada carga recibe un identificador; solo la más reciente puede escribir en
-  // el estado. Así una respuesta lenta no pisa a otra más nueva.
+  // Every load gets an identifier; only the most recent one may write to state.
+  // That stops a slow response from overwriting a newer one.
   const requestIdRef = useRef(0);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
@@ -54,8 +54,8 @@ export function useAsyncResource(fetcher, { enabled = true, deps = [] } = {}) {
 
       return () => controller.abort();
     },
-    // `deps` es la lista de dependencias del llamante; es intencional que ESLint
-    // no pueda analizarla estáticamente.
+    // `deps` is the caller's dependency list; ESLint not being able to analyse
+    // it statically is intentional.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [enabled, ...deps]
   );
@@ -63,7 +63,7 @@ export function useAsyncResource(fetcher, { enabled = true, deps = [] } = {}) {
   useEffect(() => {
     const cancel = load();
     return () => {
-      // Invalida la carga en curso para que no escriba tras el desmontaje.
+      // Invalidates the in-flight load so it does not write after unmount.
       requestIdRef.current += 1;
       cancel();
     };
@@ -73,8 +73,8 @@ export function useAsyncResource(fetcher, { enabled = true, deps = [] } = {}) {
     data: state.data,
     status: state.status,
     error: state.error,
-    // `idle` cuenta como carga solo si el recurso está habilitado: si no lo
-    // está, nunca llegará a cargar y la UI no debe mostrar un spinner eterno.
+    // `idle` counts as loading only when the resource is enabled: if it is not,
+    // it will never load and the UI must not show an eternal spinner.
     isLoading: enabled && (state.status === 'loading' || state.status === 'idle'),
     reload: load,
   };

@@ -36,9 +36,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Aviso de producto no comprable. Se distingue del mensaje de error de una
-   petición fallida: aquí no ha fallado nada, el producto simplemente no está
-   a la venta, así que el tono es informativo y no de alarma. */
+/* Notice for a product that cannot be bought. It is distinct from the error
+   message of a failed request: nothing has failed here, the product is simply
+   not for sale, so the tone is informative rather than alarming. */
 .unavailable {
   display: flex;
   align-items: flex-start;

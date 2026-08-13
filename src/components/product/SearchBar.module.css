@@ -48,8 +48,8 @@
   color: var(--color-ink-muted);
 }
 
-/* Oculta la "x" nativa de los input[type=search] en Chrome/Safari:
-   ya ofrecemos un botón propio, accesible y etiquetado. */
+/* Hides the native "x" of input[type=search] in Chrome/Safari: we already
+   provide our own button, accessible and labelled. */
 .input::-webkit-search-cancel-button {
   appearance: none;
 }

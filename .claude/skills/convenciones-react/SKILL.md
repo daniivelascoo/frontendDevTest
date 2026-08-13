@@ -1,105 +1,136 @@
 ---
 name: convenciones-react
-description: Convenciones de este proyecto para escribir componentes, hooks, CSS Modules y capa de datos en React con JavaScript. Úsala antes de crear o refactorizar cualquier archivo de src/, para que el código nuevo no desentone del existente.
+description: This project's conventions for writing components, hooks, CSS Modules and the data layer in React with JavaScript. Use it before creating or refactoring any file under src/, so that new code does not clash with what is already there.
 ---
 
-# Cómo se escribe código en este proyecto
+# How code is written in this project
 
-Reglas concretas, no principios generales. Si una regla te estorba para resolver
-bien un problema, sáltatela y explica por qué en un comentario.
+Concrete rules, not general principles. If a rule gets in the way of solving a
+problem properly, break it and explain why in a comment.
 
-## Estructura de carpetas
+## Folder structure
 
 ```
 src/
-├── api/         Cliente HTTP y servicios. Es la única capa que conoce el API.
-├── lib/         Lógica pura sin React: caché, formato, filtrado, specs.
-├── hooks/       Hooks reutilizables.
-├── context/     Estado compartido (cesta, migas de pan).
-├── components/  Componentes de presentación, agrupados por dominio.
-│   ├── layout/  Cabecera, migas, contador, estructura de página.
-│   ├── product/ Todo lo específico de productos.
-│   └── ui/      Piezas genéricas sin conocimiento del dominio.
-└── pages/       Una carpeta por vista del router.
+├── api/         HTTP client and services. The only layer that knows the API.
+├── lib/         Pure logic without React: cache, format, search, specs.
+├── hooks/       Reusable hooks.
+├── context/     Shared state (cart, breadcrumbs).
+├── components/  Presentational components, grouped by domain.
+│   ├── layout/  Header, breadcrumbs, cart counter, page structure.
+│   ├── product/ Everything product-specific.
+│   └── ui/      Generic pieces with no domain knowledge.
+└── pages/       One folder per router view.
 ```
 
-La dirección de las dependencias es siempre `pages → components → hooks → lib`.
-Un archivo de `lib/` que importe React es señal de que está en la capa
-equivocada.
+Dependencies always run in the direction `pages → components → hooks → lib`.
+A file in `lib/` that imports React is a sign it sits in the wrong layer.
 
-## Componentes
+## Language
 
-- **Exportación nombrada**, nunca `export default`. Facilita renombrar y evita
-  que dos archivos importen el mismo componente con nombres distintos.
-- Un componente por archivo, con el mismo nombre que el archivo.
-- Sin `PropTypes`: los contratos se documentan con un bloque **JSDoc** encima del
-  componente y se verifican con tests.
-- Nada de `React.FC` ni de tipos: esto es JavaScript.
-- Las extensiones se escriben en los imports (`./Button.jsx`), porque el proyecto
-  usa ESM nativo.
+Code, comments, JSDoc and test names are written in **English**.
+
+User-facing strings stay in **Spanish** — button labels, messages, `aria-label`,
+`alt` text. They are the product, not documentation, and the test assertions
+match them literally.
+
+## Components
+
+- **Named exports**, never `export default`. It makes renaming easier and stops
+  two files importing the same component under different names.
+- One component per file, named after the file.
+- No `PropTypes`: contracts are documented with a **JSDoc** block above the
+  component and verified with tests.
+- No `React.FC`, no types: this is JavaScript.
+- Import paths carry the extension (`./Button.jsx`), because the project uses
+  native ESM.
 
 ```jsx
 /**
- * Descripción de qué resuelve el componente y, si hay algo no evidente,
- * por qué se resolvió así.
+ * What the component solves and, if there is anything non-obvious, why it was
+ * solved that way.
  *
  * @param {object} props
  * @param {string} props.label
  */
-export function MiComponente({ label }) { /* … */ }
+export function MyComponent({ label }) {
+  /* … */
+}
 ```
 
-## Estilos
+## Styles
 
-- Un `Componente.module.css` junto a su `Componente.jsx`.
-- **Todos** los valores salen de los tokens de `styles/tokens.css`. Si necesitas
-  un color o un espaciado que no existe, añádelo como token; no lo escribas a
-  pelo en el módulo.
-- Nombres de clase en `camelCase`, porque así se consumen desde JS.
-- Los media queries van en `rem`, y el diseño se piensa primero en móvil.
-- Nada de estilos en línea salvo en `ErrorBoundary`, que debe funcionar aunque
-  el CSS no haya llegado a cargar.
+- One `Component.module.css` next to its `Component.jsx`.
+- **Every** value comes from the tokens in `styles/tokens.css`. If you need a
+  colour or a spacing that does not exist, add it as a token; do not hardcode it
+  in the module.
+- Class names in `camelCase`, because that is how they are consumed from JS.
+- Media queries go in `rem`, and the design is thought out mobile-first.
+- No inline styles except in `ErrorBoundary`, which must work even if the
+  stylesheet never loaded.
 
-## Estado y datos
+## State and data
 
-- Peticiones al API **solo** desde `api/`. Un componente nunca llama a `fetch`.
-- Todo dato remoto pasa por `useAsyncResource`, que expone un `status`
-  (`idle` / `loading` / `success` / `error`) en lugar de booleanos sueltos.
-- Al pintar, cubre siempre los cuatro estados: cargando, error, vacío y con
-  datos. Un estado vacío sin mensaje es un bug.
-- Estado local con `useState`; compartido con Context. No hace falta nada más
-  para una aplicación de dos vistas.
-- Si un valor es reconstruible a partir de otro, no lo guardes en estado:
-  derívalo con `useMemo`.
+- API requests **only** from `api/`. A component never calls `fetch`.
+- All remote data goes through `useAsyncResource`, which exposes a `status`
+  (`idle` / `loading` / `success` / `error`) instead of loose booleans.
+- When rendering, always cover the four states: loading, error, empty and with
+  data. An empty state without a message is a bug.
+- Local state with `useState`; shared state with Context. Nothing else is needed
+  for a two-view application.
+- If a value can be rebuilt from another, do not store it in state: derive it
+  with `useMemo`.
 
-## Accesibilidad
+## Security
 
-No es un extra opcional; `eslint-plugin-jsx-a11y` corre en cada commit.
+The attack surface is small, but two rules hold it in place:
 
-- Elige el elemento HTML por su semántica antes de recurrir a ARIA: `fieldset` y
-  `radio` para los selectores, `dl` para pares etiqueta-valor, `ul`/`li` para las
-  listas.
-- Todo control interactivo necesita nombre accesible: texto visible,
-  `aria-label` o un `<label>` asociado.
-- Los estados que solo se perciben visualmente (número de resultados, producto
-  añadido) se anuncian con `aria-live`.
-- Las imágenes decorativas llevan `aria-hidden="true"`; las informativas, un
-  `alt` que describa el producto.
+- **Never `dangerouslySetInnerHTML`, `innerHTML`, `eval` or `new Function`.**
+  There is currently not a single one in `src/`; keep it that way.
+- **URLs coming from the API are sanitised before reaching the DOM.** React
+  escapes text but does **not** validate the `src` attribute.
+  `lib/imageUrl.js` (`sanitizeImageUrl`) accepts `http(s)` and relative paths
+  and rejects everything else; `ProductImage.jsx` applies it. Both the list card
+  and the detail page render their image through that component, so it is the
+  only place that needs to sanitise. What fails validation falls back to the
+  existing placeholder.
 
-## Comentarios
+The Content Security Policy is injected from `vite.config.js` on **build only**
+— in development it would block Vite's HMR WebSocket and React Refresh. It
+restricts `script-src`, `connect-src` and `img-src` to the app's own origin plus
+the API host. `style-src` needs `'unsafe-inline'` because `ErrorBoundary` styles
+itself through the `style` attribute on purpose.
 
-Comenta el **porqué**, nunca el qué. Un comentario que parafrasea la línea
-siguiente es ruido que además envejece mal.
+`frame-ancestors` and HSTS only take effect as real HTTP headers, so they belong
+to the hosting configuration and cannot be solved from the code.
 
-Merecen comentario: las peculiaridades del API, las decisiones que parecen
-raras sin contexto (por qué no se propaga el `AbortSignal`, por qué el estado se
-ajusta durante el render) y las concesiones deliberadas.
+## Accessibility
 
-## Antes de dar algo por terminado
+Not an optional extra; `eslint-plugin-jsx-a11y` runs on every commit.
+
+- Pick the HTML element for its semantics before reaching for ARIA: `fieldset`
+  and `radio` for the selectors, `dl` for label-value pairs, `ul`/`li` for lists.
+- Every interactive control needs an accessible name: visible text, `aria-label`
+  or an associated `<label>`.
+- States perceived only visually (result count, product added) are announced
+  with `aria-live`.
+- Decorative images carry `aria-hidden="true"`; informative ones carry an `alt`
+  that describes the product.
+
+## Comments
+
+Comment the **why**, never the what. A comment that paraphrases the next line is
+noise that also ages badly.
+
+Worth a comment: the API's quirks, decisions that look odd without context (why
+the `AbortSignal` is not propagated, why state is adjusted during render) and
+deliberate trade-offs.
+
+## Before calling anything done
 
 ```bash
-npm run check   # lint + formato + tests + build
+npm run check   # lint + format + tests + build
 ```
 
-El hook de `PostToolUse` ya formatea y analiza cada archivo que tocas, así que
-`check` no debería sorprenderte casi nunca.
+The `PostToolUse` hook already formats and lints every file you touch, so
+`check` should almost never surprise you.

@@ -3,17 +3,17 @@ import { ENDPOINTS } from './config.js';
 import { appCache } from '../lib/cache.js';
 
 /**
- * Servicio de productos: única puerta de entrada a los datos del API.
+ * Products service: the single gateway to the API data.
  *
- * Sobre el cliente HTTP añade dos cosas:
+ * On top of the HTTP client it adds two things:
  *
- * 1. **Caché con TTL** (`src/lib/cache.js`). Antes de salir a red se consulta
- *    la caché; la respuesta se guarda siempre que la petición tenga éxito.
+ * 1. **Cache with TTL** (`src/lib/cache.js`). The cache is consulted before
+ *    going to the network; the response is stored whenever the request
+ *    succeeds.
  *
- * 2. **Deduplicación de peticiones en vuelo.** Sin ella, el doble montaje de
- *    React en StrictMode —o dos componentes pidiendo el mismo producto—
- *    dispararían peticiones duplicadas antes de que la primera llegue a
- *    escribir en caché.
+ * 2. **De-duplication of in-flight requests.** Without it, React's double mount
+ *    in StrictMode — or two components asking for the same product — would fire
+ *    duplicate requests before the first one managed to write to the cache.
  */
 
 const CACHE_KEYS = {
@@ -25,19 +25,19 @@ const CACHE_KEYS = {
 const inFlight = new Map();
 
 /**
- * Ejecuta `fetcher` sirviendo desde caché cuando sea posible y garantizando
- * que no haya dos peticiones simultáneas para la misma clave.
+ * Runs `fetcher`, serving from cache when possible and guaranteeing there are
+ * never two simultaneous requests for the same key.
  *
- * Nota: la señal del llamante no se propaga a la petición compartida a
- * propósito. Si lo hiciera, desmontar un componente cancelaría la petición
- * que otros consumidores están esperando. La cancelación se gestiona en el
- * hook, descartando el resultado en lugar de abortar la red.
+ * Note: the caller's signal is deliberately not propagated to the shared
+ * request. If it were, unmounting one component would cancel the request other
+ * consumers are waiting on. Cancellation is handled in the hook, which discards
+ * the result instead of aborting the network.
  *
  * @template T
  * @param {string} cacheKey
  * @param {() => Promise<T>} fetcher
  * @param {object} [options]
- * @param {boolean} [options.force] Ignora la caché y revalida contra el API.
+ * @param {boolean} [options.force] Ignores the cache and revalidates against the API.
  * @returns {Promise<T>}
  */
 async function withCache(cacheKey, fetcher, { force = false } = {}) {
@@ -67,18 +67,18 @@ async function withCache(cacheKey, fetcher, { force = false } = {}) {
  * @property {string} id
  * @property {string} brand
  * @property {string} model
- * @property {string} price Cadena vacía cuando el producto no está a la venta.
+ * @property {string} price Empty string when the product is not for sale.
  * @property {string} imgUrl
  */
 
 /**
  * @typedef {object} ProductOption
- * @property {number} code Código que espera el API al añadir a la cesta.
- * @property {string} name Etiqueta legible.
+ * @property {number} code Code the API expects when adding to the cart.
+ * @property {string} name Human-readable label.
  */
 
 /**
- * Obtiene el catálogo completo de productos.
+ * Fetches the full product catalogue.
  *
  * @param {object} [options]
  * @param {boolean} [options.force]
@@ -87,13 +87,13 @@ async function withCache(cacheKey, fetcher, { force = false } = {}) {
 export async function getProducts({ force = false } = {}) {
   const data = await withCache(CACHE_KEYS.products, () => request(ENDPOINTS.products), { force });
 
-  // El contrato del API dice que devuelve un array. Si algún día no lo hace,
-  // preferimos una lista vacía a que la UI reviente al mapear.
+  // The API contract says it returns an array. If one day it does not, an empty
+  // list is preferable to the UI blowing up while mapping.
   return Array.isArray(data) ? data : [];
 }
 
 /**
- * Obtiene el detalle de un producto.
+ * Fetches a product's detail.
  *
  * @param {string} id
  * @param {object} [options]
@@ -105,16 +105,16 @@ export async function getProduct(id, { force = false } = {}) {
 }
 
 /**
- * Añade un producto a la cesta.
+ * Adds a product to the cart.
  *
- * Es una mutación, así que nunca se cachea ni se deduplica: cada pulsación del
- * usuario debe llegar al API.
+ * This is a mutation, so it is never cached nor de-duplicated: every click by
+ * the user must reach the API.
  *
  * @param {object} selection
- * @param {string} selection.id Identificador del producto.
- * @param {number} selection.colorCode Código del color elegido.
- * @param {number} selection.storageCode Código del almacenamiento elegido.
- * @returns {Promise<{ count: number }>} Número de artículos en la cesta.
+ * @param {string} selection.id Product identifier.
+ * @param {number} selection.colorCode Code of the chosen colour.
+ * @param {number} selection.storageCode Code of the chosen storage.
+ * @returns {Promise<{ count: number }>} Number of items in the cart.
  */
 export async function addToCart({ id, colorCode, storageCode }) {
   const data = await request(ENDPOINTS.cart, {
@@ -126,7 +126,7 @@ export async function addToCart({ id, colorCode, storageCode }) {
   return { count: Number.isFinite(count) ? count : 0 };
 }
 
-/** Invalida toda la caché de datos del API (usado por el botón de reintentar). */
+/** Invalidates the whole API data cache (used by the retry button). */
 export function invalidateProductCache() {
   appCache.clear();
   inFlight.clear();

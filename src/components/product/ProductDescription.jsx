@@ -3,14 +3,14 @@ import { MISSING_VALUE } from '../../lib/format.js';
 import styles from './ProductDescription.module.css';
 
 /**
- * Ficha técnica del producto.
+ * Product spec sheet.
  *
- * Se usan listas de definición (`dl`/`dt`/`dd`) porque eso es exactamente lo
- * que son estos datos: pares etiqueta-valor. Un lector de pantalla los asocia
- * automáticamente, sin necesidad de atributos ARIA.
+ * Definition lists (`dl`/`dt`/`dd`) are used because that is exactly what this
+ * data is: label-value pairs. A screen reader associates them automatically,
+ * with no need for ARIA attributes.
  *
  * @param {object} props
- * @param {object} props.product Detalle de producto del API.
+ * @param {object} props.product Product detail from the API.
  */
 export function ProductDescription({ product }) {
   const requiredSpecs = getRequiredSpecs(product);
@@ -31,8 +31,8 @@ export function ProductDescription({ product }) {
               <dt className={styles.label}>{spec.label}</dt>
               <dd className={styles.value} data-missing={isMissing || undefined}>
                 {spec.value}
-                {/* El guion se distingue a simple vista por el color, pero un
-                    lector de pantalla leería solo "menos". */}
+                {/* The dash is distinguishable at a glance by its colour, but a
+                    screen reader would read just "minus". */}
                 {isMissing && <span className="visually-hidden">Dato no disponible</span>}
               </dd>
             </div>

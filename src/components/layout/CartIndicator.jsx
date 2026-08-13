@@ -2,11 +2,11 @@ import { useCart } from '../../context/cartContext.js';
 import styles from './CartIndicator.module.css';
 
 /**
- * Número de artículos en la cesta, visible en la cabecera de cualquier vista.
+ * Number of items in the cart, visible in the header on every view.
  *
- * El valor mostrado es el que devuelve el API en la respuesta de añadir, y se
- * anuncia con `aria-live` para que un lector de pantalla confirme la acción
- * sin que el foco tenga que moverse hasta la cabecera.
+ * The value shown is the one the API returns in the add response, and it is
+ * announced with `aria-live` so a screen reader confirms the action without the
+ * focus having to travel up to the header.
  */
 export function CartIndicator() {
   const { count } = useCart();
